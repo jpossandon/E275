@@ -1,0 +1,129 @@
+% Generates the randomization file for the TOUCH experiment
+% Experiment consist in a free-viewing task of complext scenes in the 
+% meanwhile tactile stimulation is delivered on the hands. 
+% Stimulations occurs in two
+% different moments, ~150 ms after image appearance and randomly
+% thereafter. Hands can be crossed or uncrossed
+
+% The experiment is divided in 4 big blocks according to position of hands, big block
+% are composed of smaller 20 continuous images blocs and 
+% are intermixed and balanced across subjects in relation to the start condition 
+% Hands block
+% 0 - uncrossed
+% 1 - crossed
+
+% Stimulation conditions to be randomized
+% stimulationa at image start occurs only in half of the trials, 
+% 0 - no stimulation (half trials)
+% 1 - left stimulation (1/6 trials)
+% 2 - right stimulation (1/6 trials)
+% 3 - bilateral stimulation (1/6 trials)
+
+% Randomization of images, after 24 subjects an image should have happened
+% in the four different start conditions at the specified ratio, two different block types
+% Stimuli and mirror or original version, images from the typical osna dataset 256 images, plus 128 images
+% from the labelme set
+clear all
+n_coh = 5;     %number of groups of 24 subjecs
+n_block =16;    % number of block per experiment, every 4 blocks we change hands position
+
+
+% we need to remove the images that have text because that makes teh
+% mirroring evident.
+im_with_text = [130,137,139,143,144,146,147,148,149,150,151,152,155,158,160,162,...
+    166,167,168,169,170,173,174,179,180,181,183,184,190,192,257,259,260,261,...
+    263,264,266,267,269,271,272,273,275,276,277,278,283,284,286,287,289,293,...
+    294,296,297,298,306,317,319,320,321,322,324,327,329,332,334,335,337,342,...
+    343,350,351,355,358,359,360,364,365,368,374,376,377,380,383,385,390,392,...
+    394,395,396,397,399,400,401,404,405,406,407,408,409,411,413,414,418,419,...
+    422,430,431,432,433,437,438,441,444,445,447,449,451,453,454,457,458,460,...
+    462,465,466,467,470,472,475,478,480,488,490,491,492,493,501,502,507,510,...
+    513,514,517,518,521,524,525,526,529,535,537,538,540];
+
+possims = setdiff(1:589,im_with_text);
+images_number = possims(1:384);   % this will be changes accordingly to exclude manmades with text
+
+suj = 1;
+for c =1:n_coh
+    % image randomization
+    n_im        = 384;
+    imrand      = [0 0 0 4 4 4 1 2 3 5 6 7];
+    for ene = 2:n_im
+        imrand = [imrand;circshift(imrand(ene-1,:),[0,-1])];
+    end
+% old image randomization    
+%     seed        = randsample(repmat([0 0 0 4 4 4 1 2 3 5 6 7],1,n_im/12)',n_im); % seed for the 8 condition with half of the trial without stimulation (0 and 4)
+%     imrand      = seed;
+%     for e = 1:7      % this organizes the conditions per image per 8 subjects so each images is seen in every image start condition
+%         aux             = imrand(:,e)+1;
+%         aux(aux==8)     = 0;
+%         imrand          = [imrand,aux];
+%     end
+     blockorder  = repmat([0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1;1 1 1 1 0 0 0 0 1 1 1 1 0 0 0 0],6,1);   % cross and uncrossed block goes for 4 small blocks,
+    for bsuj=1:12
+        % test block is 10 images, the same for every subject (images 591 tp 600), the condition is
+        % uncrossed
+        for im = 1:10
+            s_rand(suj,im).image  = 590+im;
+            s_rand(suj,im).block  = 0;
+            s_rand(suj,im).mirror = 0;
+            s_rand(suj,im).stim   = randsample(0:3,1);
+            if im==1
+                s_rand(suj,im).block_start = 1;    
+            else 
+                s_rand(suj,im).block_start = 0;
+            end
+        end
+        s_rand(suj+1,:)         = s_rand(suj,:);
+        
+        mirror = randsample(repmat([0 1],1,n_im/2),n_im); % original mirror randomization
+        b0 = 0; b1=0;
+        indx0       = randsample(find(imrand(:,bsuj)<4),n_im/2); % conditions 0-3 are uncrossed
+        indx1       = randsample(find(imrand(:,bsuj)>3),n_im/2); % conditions 4-7 are crossed
+        for b = 1:16
+            if blockorder(bsuj,b)==0   % this peace find next 20 crossed or uncrossed trials
+                indx = indx0(24*b0+1:24*(b0+1));
+                b0 = b0+1;
+            elseif blockorder(bsuj,b)==1
+                indx = indx1(24*b1+1:24*(b1+1));
+                b1 = b1+1;
+            end
+            for im = 1:24
+                s_rand(suj,10+im+24*(b-1)).image      = images_number(indx(im));
+                s_rand(suj,10+im+24*(b-1)).block      = blockorder(bsuj,b);
+                s_rand(suj,10+im+24*(b-1)).mirror     = mirror(im+24*(b-1));
+                if blockorder(bsuj,b)==0
+                    s_rand(suj,10+im+24*(b-1)).stim   = imrand(indx(im),bsuj);
+                elseif blockorder(bsuj,b)==1
+                    s_rand(suj,10+im+24*(b-1)).stim   = imrand(indx(im),bsuj)-4;
+                end
+                if im==1
+                    s_rand(suj,10+im+24*(b-1)).block_start = 1;    
+                else
+                    s_rand(suj,10+im+24*(b-1)).block_start = 0;
+                end
+                s_rand(suj+1,10+im+24*(b-1))           = s_rand(suj,10+im+24*(b-1));
+                s_rand(suj+1,10+im+24*(b-1)).mirror    = double(~s_rand(suj+1,10+im+24*(b-1)).mirror);
+            end
+        end
+        
+        suj = suj+2;
+    end
+    
+end
+save('/Users/jossando/trabajo/E275/E275_randomization.mat','s_rand')
+ 
+
+
+%%
+% testing it
+% for im = 11:384
+% for s = 1:24
+%     indx = find([s_rand(s,:).image]==im);
+%     if s_rand(s,indx).block==1
+%         res(im,s) = s_rand(s,indx).stim+4;
+%     else
+%         res(im,s) = s_rand(s,indx).stim;
+%     end
+% end
+% end
