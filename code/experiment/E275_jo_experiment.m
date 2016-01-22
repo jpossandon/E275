@@ -8,7 +8,8 @@
 clear all
 %! adjust this to the appropiate screen
 display(sprintf('\n\n\n\n\n\nPlease check that screen resolution is set to 1280x960 and the screen borders are OK. \nIf screen resolution is changes matlab (and the terminal) need to be re-started.\n'))
-exp_path         = '/Users/jossando/trabajo/E275/'; % path in my mac
+%exp_path         = '/Users/jossando/trabajo/E275/'; % path in my mac
+exp_path         = '/home/th/Experiments/E275/';
 %! adjust this to the appropiate data management
 pathEDF         = [exp_path 'data/'];
 s_n             = input('Subject number: ','s');
@@ -27,7 +28,7 @@ setStr = sprintf('Subject %s\nAge %s\nHandedness %s\nGender %s\n',win.s_name,win
 fprintf(setStr); % print relevant current settings, ask for confirmation
 
 AssertOpenGL(); % check if Psychtoolbox is working (with OpenGL) TODO: is this needed?
-win.DoDummyMode = 1;
+win.DoDummyMode = 0;
 
 ClockRandSeed(); % this works ok
 % assert(exist(BaseDir,'dir')==7, sprintf('"%s" does not exist!', BaseDir))
@@ -76,31 +77,30 @@ win.stim_lambda             = log(2)./3.75;         % we use an exponential dist
 
 % this set the stimulator via the serial port, probably not going to use it again
 % fprintf('\nopening serial port...');
-% device = '/dev/ttyS0';          % this is the serial port
-% obj = serial(device,'BaudRate', 115200,'Parity','none','StopBits',1,'FlowControl','none'); % and specs, this is D/P/S = 8/N/1 which it seems to be kind of standard
-% try                 % try to open the serial port if is nottouch_randomization.mat
-%     if strcmpi(obj.Status, 'closed')
-%         fopen(obj);
-%     end
-% catch
-%     error('MATLAB:serial:fwrite:openserialfailed', lasterr);
-%     fclose(obj);
-% end
-% fprintf('done');%exp_path
-% fprintf('\nwriting to serial port...');
-% ok = define_tact_states(obj, win.on_time, win.cycle_time);      % here I am trying to do bilateral stimulation with only one code, do not know if possible, this needs to be done once to setup the stimulator to a given code for the different stimulation channels and stimulation frequency
-% if ok ~= 1
-%     error('\n failed writing stimulus codes to serial port!\n');
-% end
-% fprintf('done');
+device = '/dev/ttyS0';          % this is the serial port
+obj = serial(device,'BaudRate', 115200,'Parity','none','StopBits',1,'FlowControl','none'); % and specs, this is D/P/S = 8/N/1 which it seems to be kind of standard
+try                 % try to open the serial port if is nottouch_randomization.mat
+    if strcmpi(obj.Status, 'closed')
+        fopen(obj);
+    end
+catch
+    error('MATLAB:serial:fwrite:openserialfailed', lasterr);
+    fclose(obj);
+end
+fprintf('done');%exp_path
+fprintf('\nwriting to serial port...');
+ok = E275_define_tact_states(obj, win.on_time, win.cycle_time);      % here I am trying to do bilateral stimulation with only one code, do not know if possible, this needs to be done once to setup the stimulator to a given code for the different stimulation channels and stimulation frequency
+if ok ~= 1
+    error('\n failed writing stimulus codes to serial port!\n');
+end
+fprintf('done');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % open and set a screen
 win.whichScreen = min(Screen('Screens'));
-% PsychDebugWindowConfiguration(0,0.5); this is for debugging with a single
-% screen
+ PsychDebugWindowConfiguration(0,0.5); %this is for debugging with a single screen
 [win.hndl win.rect] = Screen('OpenWindow',win.whichScreen,win.bkgcolor);
 % if win.rect(3)~=1280 || win.rect(4)~=960
 %     sca
@@ -176,7 +176,7 @@ Eyelink('Message','DISPLAY_COORDS %d %d %d %d', 0, 0, wrect(1), wrect(2));
 %     Eyelink('command', '!*write_ioport 0x378 10');    % stop stimulation
 % end
 % waitForKB_linux({'space'});
-
+% 
 DrawFormattedText(win.hndl, 'Stimulatoren werden auf den Handr??cken besfestigt ...\n Leertaste dr??cken','center','center',255,55);
 Screen('Flip', win.hndl);
 waitForKB_linux({'space'});
@@ -234,7 +234,7 @@ fixIndex=Screen('MakeTexture', win.hndl, image);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the actual task!
 b=0;        % block flag
-nTrials = length(s_rand);
+nTrials = length(s_rand)
 for nT = 1:nTrials
   
     if s_rand(nT).image<256
@@ -337,12 +337,14 @@ for nT = 1:nTrials
     % if we use an uniform distribution
 %     rvals =  win.stim_min_latency + (win.stim_max_latency-win.stim_min_latency).*rand(100,1); % get enough random values    
     % if we use an exponential distribution
-        rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);
+    rvals = win.stim_min_latency +(-1./win.stim_lambda .* log(rand([1 100])));
+    %    rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
     stim_idx = 1;
     while GetSecs<tstart+win.trial_minimum_length
         if GetSecs>last_stim+rvals(stim_idx)
 %           stim = randsample(1:3,1); % no more bilateral (3) stimulation
-           stim = randsample(1:2,1);
+%           stim = randsample(1:2,1);
+          stim = round(1+rand(1))
           Eyelink('command', '!*write_ioport 0x378 %d',stim);                    % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
           WaitSecs(win.stim_dur);       
           Eyelink('command', '!*write_ioport 0x378 %d',10);    % stop stimulation
@@ -379,7 +381,9 @@ if ~win.DoDummyMode
 end
 % A known issue: Eyelink('Shutdown') crashing Matlab in 64-bit Linux
 % cf. http://tech.groups.yahoo.com/group/psychtoolbox/message/12732
-if ~IsLinux(true), Eyelink('Shutdown'); end
+% not anymore it seems
+%if ~IsLinux(true), Eyelink('Shutdown'); end
+Eyelink('Shutdown');
 Screen('CloseAll');
 Screen('Preference','Verbosity', prevVerbos); % restore previous verbosity
 Screen('Preference','VisualDebugLevel', prevVisDbg);% restore prev vis dbg
