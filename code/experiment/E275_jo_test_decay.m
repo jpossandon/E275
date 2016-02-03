@@ -2,20 +2,20 @@
 % E275
 
 trialdur    = 8;
-halflife    = trialdur/12;
+halflife    = trialdur/3;
 decay       = log(2)./halflife;         %lambda
 mean_life   = 1/decay;
-min_length  = 1.0;
+min_length  = .75;
 display(sprintf('\nCalculating estimates for:\n\n  Trial duration : %4.2f s\n  Half-life      : %4.2f s\n  Lambda         : %4.2f\n  Mean interval  : %4.2f s',trialdur,halflife,decay,mean_life))
 
 
 nsim        = 1000;
-ntrials     = 289;
+ntrials     = 390;
 binwidth    = .5;
 tbins       = 0:binwidth:trialdur;
 display(sprintf('\nRunning %d simulations of %d trials each\n',nsim,ntrials))
 
-%% 
+ 
 nevents                     = zeros(1,nsim);        % number of events per sim
 nostim                      = zeros(1,nsim);        % number of trials without stimulation
  intervals                   = zeros(1,nsim);        % times between trials
@@ -44,7 +44,7 @@ for n =1:nsim
     intervals(n)            = mean(interv);
  end
 
-%%
+
 figure
 set(gcf,'Position',[160 15 982 690])
 subplot(2,3,1)

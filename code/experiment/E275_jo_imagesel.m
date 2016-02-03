@@ -6,11 +6,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % cd ~/trabajo/E275/stimuli/new/                    % to get the images from the new or old set of images
-cd ~/trabajo/E275/stimuli/old/
+% cd ~/trabajo/E275/stimuli/old/
+cd ~/trabajo/E275/stimuli/jeffwall/
 D                   = dir;
 target_siz          = [1080,1920];                  % size Samsung Syncmaster P2370, BPN lab old EEG room
 
-for f = 561:length(D)
+for f = 4:length(D)
     im_old          = imread(D(f).name);
     im_sz           = size(im_old);
     
@@ -24,6 +25,12 @@ for f = 561:length(D)
         aux_sz      = size(im);
         tocrop      = aux_sz(1)-target_siz(1);
         im          = im(floor(tocrop/2)+1:end-ceil(tocrop/2),:,:);
+        
+    elseif im_sz(2)/im_sz(1)>16/9 
+        im          = imresize(im_old,[,target_siz(1),im_sz(2)*target_siz(1)/im_sz(1)]);
+        aux_sz      = size(im);
+        tocrop      = aux_sz(2)-target_siz(2);
+        im          = im(:,floor(tocrop/2)+1:end-ceil(tocrop/2),:);
     else
         display(sprintf('\nImage %s has a size of %dx%d and was not processed',im_sz(1),im_sz(2)))
         continue

@@ -53,9 +53,15 @@ win.tact_freq               = 200;                                          % fr
 win.cycle_time              = 1000/win.tact_freq*1000;                      % cycle_time sets frequency in microseconds (1000 microsecond is one milisecond)
 win.on_time                 = win.cycle_time-1;                             % on_time specifies intensity. If stimulator is on for half of the cycle time, intensity is maximal
 win.stim_dur                = .025;                                         % duration of tactile stimulation. The vibrator takes some time to stop its motion so for around 50 ms we use 25 ms of stimulation time (ask Tobias for the exact latencies they have measured)
-win.stim_min_latency        = .5;                                           % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
-win.halflife                = 3.75;                                         % (!CHANGE!) we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
+win.stim_min_latency        = .750;                                         % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
+win.halflife                = 8/3;                                          % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
 win.stim_lambda             = log(2)./win.halflife;                                 
+
+% Blocks and trials
+win.exp_trials              = 390;
+win.test_trials             = 10;
+win.t_perblock              = 15;
+win.calib_every             = 2; 
 
 % Audio, white noise parameters
 win.wn_vol                  = .2;                                           % (CHANGE?) adjust to subject comfort
@@ -75,22 +81,22 @@ else
 end
 
 pathEDF                     = [exp_path 'data/'];                           % where the EDF files are going to be saved
-s_n                         = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
-fnameEDF                    = sprintf('s%02d_E275.EDF',str2num(s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
-if exist([pathEDF fnameEDF],'file')                                         % checks whether there is a file with the same name
-    rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',fnameEDF),'s');
+win.s_n                     = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
+win.fnameEDF                = sprintf('s%02d_E275.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
+if exist([pathEDF win.fnameEDF],'file')                                         % checks whether there is a file with the same name
+    rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',win.fnameEDF),'s');
     if ~(strcmpi(rp,'n') || strcmpi(rp,'no'))
         error('filename already exist')
     end
 end
 
-load([exp_path 'E275_randomization.mat'])                                   % opens randomization file
-s_rand = s_rand(str2num(s_n),:);                                            % select the randomization for the subject
+% load([exp_path 'E275_randomization.mat'])                                   % opens randomization file
+% s_rand = s_rand(str2num(win.s_n),:);                                            % select the randomization for the subject
 
 win.s_age                   = input('Subject age: ','s');
 win.s_hand                  = input('Subject handedness for writing (l/r): ','s');
 win.s_gender                = input('Subject gender (m/f): ','s');
-setStr                      = sprintf('Subject %d\nAge %s\nHandedness %s\nGender %s\n',s_n,win.s_age,win.s_hand,win.s_gender); % setting summary
+setStr                      = sprintf('Subject %d\nAge %s\nHandedness %s\nGender %s\n',win.s_n,win.s_age,win.s_hand,win.s_gender); % setting summary
 fprintf(setStr); 
 
 AssertOpenGL();                                                             % check if Psychtoolbox is working (with OpenGL) TODO: is this needed?
@@ -190,22 +196,25 @@ end
 
 % This is the safest way so umlaut are corretly displayed UTF. 
 % code for umlauts 228(a),252(u)
-txt1    = double(['Die Funktionsf' 228 'higkeit der Ger' 228 'te muss '...    
+txt1     = double(['Die Funktionsf' 228 'higkeit der Ger' 228 'te muss '...    
             252 'berpr' 252 'ft werden\n' txtdev ' zum Fortfahren..']);             
-txt2    = double(['Stimulatoren werden auf den Handr' 252 'cken besfestigt ...\n' txtdev]);
-txt3    = double(['Der linke Stimulator wird getestet (vibriert drei mal), ...\n danach ' txtdev]);
-txt4    = double(['Der rechte Stimulator wird getestet (vibriert drei mal), ...\n danach ' txtdev]);
-txt5    = double(['Beide Stimulatoren vibrieren gleichzeitig (drei mal), ...\n danach '  txtdev]); 
-txt6    = double(['Beginn des Experiments \n Test Block \n Die H' 228 ...
+txt2     = double(['Stimulatoren werden auf den Handr' 252 'cken besfestigt ...\n' txtdev]);
+txt3     = double(['Der linke Stimulator wird getestet (vibriert drei mal), ...\n danach ' txtdev]);
+txt4     = double(['Der rechte Stimulator wird getestet (vibriert drei mal), ...\n danach ' txtdev]);
+txt5     = double(['Beide Stimulatoren vibrieren gleichzeitig (drei mal), ...\n danach '  txtdev]); 
+txt6     = double(['Beginn des Experiments \n Test Block \n Die H' 228 ...
             'nde bitte parallel positionieren (parallel). \n Zum Beginnen die ' txtdev]);
-txt7    = double(['Beginn des Experiments\n Test Block \n  F' 252 'r den n' 228 ...
+txt7     = double(['Beginn des Experiments\n Test Block \n  F' 252 'r den n' 228 ...
             'chsten Block bitte die H' 228 'nde ' 252 'berkreuzen (crossed). \n Zum Fortfahren die ' txtdev]);      
 % txt 9&10 are contingent to the block so they are defined later
-txt10   = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-    'nde parallel positionieren. Zum Fortfahren die ' txtdev]);
-txt11   = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-    'nde ' 252 'berkreuzen. Zum Fortfahren die '  txtdev]);
-                                 
+txt10    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
+        'nde parallel positionieren. Zum Fortfahren die ' txtdev]);
+txt11    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
+        'nde ' 252 'berkreuzen. Zum Fortfahren die '  txtdev]);
+
+%these are for debugging
+handstr  = {'Left','Right'};
+crossstr = {'Uncrossed','Crossed'};
         
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % EYE-TRACKER SETUP, OPEN THE EDF FILE AND ADDS INFO TO ITS HEADER
@@ -221,7 +230,7 @@ elseif win.in_dev == 2
     [clicks,x,y,whichButton] = GetClicks(win.hndl,0);                       % mouse clik
 end
 
-OpenError = Eyelink('OpenFile', fnameEDF);                                  % opens the eye-tracking file. It can only be done after setting-up the eye-tracker 
+OpenError = Eyelink('OpenFile', win.fnameEDF);                                  % opens the eye-tracking file. It can only be done after setting-up the eye-tracker 
 if OpenError                                                                % error in case it is not possible, never happened that I know, but maybe if the small hard-drive aprtition of the eye=tracker is full
     error('EyeLink OpenFile failed (Error: %d)!', OpenError), 
 end
@@ -280,7 +289,7 @@ if win.stim_test
     WaitSecs(2);
     for e=1:3
         WaitSecs(1+rand(1));      
-        Eyelink('command', '!*write_ioport 0x378 3');                    
+        Eyelink('command', '!*write_ioport 0x378 5');                    
         WaitSecs(win.stim_dur);       
         Eyelink('command', '!*write_ioport 0x378 10');    
     end
@@ -294,6 +303,8 @@ if win.stim_test
 else
     fprintf('\nSkipping stimulators Test.\n Only during experiment debugging');
 end
+
+
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % EYE-TRACKER CALIBRATION AND VALIDATION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -305,59 +316,71 @@ Eyelink('WaitForModeReady', 500);
 fixIndex            = Screen('MakeTexture', win.hndl, image);               % this is one of the way PTB deals with images, the image matrix is transformed in a texture with a handle that can be user later to draw the image in theb PRB screen
 
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Randomization
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+test_images         = 1:15;                                                 % all subject see the same test images
+test_images         = test_images(1:win.test_trials);                       % in the same order, it does not matter
+win.image_order     = [test_images,...                                      % we randomize the order of the images, not that it really matters
+                        randsample(win.exp_trials,win.exp_trials)'];
+nTrials             = win.test_trials+win.exp_trials;                       % Total # of trial
+nBlocks             = win.exp_trials./win.t_perblock;                       % # experimental block without counting the first test one
+win.block_start     = [1,zeros(1,win.test_trials-1),...                     % Trials that are block start
+                        repmat([1,zeros(1,win.t_perblock-1)],1,nBlocks)];
+if rem(win.s_n,2)                                                           % we balance across subjects (according to their subject number) whether they start the experiment with the hand crossed or uncrossed, again this should not matter that much
+    win.blockcond   = [zeros(1,win.test_trials),...
+        repmat([zeros(1,win.t_perblock),ones(1,win.t_perblock)],1,nBlocks/2)];
+else
+    win.blockcond   = [zeros(1,win.test_trials),...
+        repmat([ones(1,win.t_perblock),zeros(1,win.t_perblock)],1,nBlocks/2)];
+end
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % THE ACTUAL EXPERIMENT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-b               = 0;                                                        % block flag
-nTrials         = length(s_rand);                                           % how many trials there is
-
+b                   = 0;                                                    % block flag
 for nT = 1:nTrials                                                          % loop throught the experiment trials
     
-    if s_rand(nT).image<256                                                 % load the image for next trial, they are not all the same format
-        image = imread(sprintf('%sstimuli/image_%01d.bmp',...
-            exp_path,s_rand(nT).image));      
-    else
-        image = imread(sprintf('%sstimuli/image_%01d.jpg',...
-            exp_path,s_rand(nT).image));      
-    end
-    
+    image                       = imread(sprintf('%sstimuli/image_%01d.jpg',...
+                                exp_path,win.image_order));      
+
     postextureIndex             = Screen('MakeTexture', win.hndl, image);   % makes the texture of this trial image
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % BLOCK START
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    if s_rand(nT).block_start == 1                                          % if it is a trial that starts a block   
+    if  win.block_start(nT) == 1                                                % if it is a trial that starts a block   
         if s.Active                                                         % if the white noise was on, we sopt it here
             PsychPortAudio('Stop', pahandle);
         end
         
         % Hand position block intructions
-        if nT ==1 && s_rand(nT).block == 0                                  % practice trials and uncrossed
+        if nT ==1 && win.blockcond(nT) == 0                                  % practice trials and uncrossed
             draw_instructions_and_wait(txt6,win.bkgcolor,win.hndl,win.in_dev,1)
-        elseif nT ==1 && s_rand(nT).block == 1                              % practice trials amd crossed, this according to randomization should be unnecesary
+        elseif nT ==1 && win.blockcond(nT) == 1                              % practice trials amd crossed, this according to randomization should be unnecesary
             draw_instructions_and_wait(txt7,win.bkgcolor,win.hndl,win.in_dev,1)
-        elseif s_rand(nT).block == 0                % uncrossed
-            txt8    = double(['Block ' num2str(b) '/17 beendet \n Pause \n  F' 252 'r den n' 228 ... 
+        elseif win.blockcond(nT) == 0                % uncrossed
+            txt8    = double(['Block ' num2str(b) '/' num2str(nBlocks) ' beendet \n Pause \n  F' 252 'r den n' 228 ... 
             'chsten Block bitte die H' 228 'nde parallel positionieren (parallel). \n Zum Fortfahren die ' txtdev]);
             draw_instructions_and_wait(txt8,win.bkgcolor,win.hndl,win.in_dev,1)
-        elseif s_rand(nT).block == 1                % crossed
-            txt9    = double(['Block ' num2str(b) '/17 beendet \n Pause \n  F' 252 'r den n' 228 ... 
+        elseif win.blockcond(nT) == 1                % crossed
+            txt9    = double(['Block ' num2str(b) '/' num2str(nBlocks) ' beendet \n Pause \n  F' 252 'r den n' 228 ... 
             'chsten Block bitte die H' 228 'nde ' 252 'berkreuzen (crossed). \n Zum Fortfahren die ' txtdev]);
             draw_instructions_and_wait(txt9,win.bkgcolor,win.hndl,win.in_dev,1)
         end      
         b = b+1;
-        if nT>1 && ismember(nT,[49:48:384]+10)                              % (!CHANGE! according to new randomization) we calibrate every two small blocks
+        if nT>1 && ismember(nT, win.t_perblock+win.test_trials+1:...
+                win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
             EyelinkDoTrackerSetup(win.el);
         end
         
-        if s_rand(nT).block==0
+        if win.blockcond(nT) == 0
             DrawFormattedText(win.hndl, txt10,'center','center',255,55);
-        elseif s_rand(nT).block==1
+        elseif win.blockcond(nT) == 1
             DrawFormattedText(win.hndl,txt11,'center','center',255,55);
         end
         Screen('Flip', win.hndl);
@@ -373,7 +396,7 @@ for nT = 1:nTrials                                                          % lo
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
     % IMAGE DRAWING AND DECISION OF WHEN TO CHANGE
-    if  s_rand(nT).block_start == 1                                         % this is the image that starts the block
+    if  win.block_start(nT) == 1                                            % this is the image that starts the block
         t1      = PsychPortAudio('Start', pahandle, 0, 0, 0);               % starts the white noise, third input is set to 0 so it loops until is sopped
         s       = PsychPortAudio('GetStatus', pahandle);
 
@@ -414,15 +437,16 @@ for nT = 1:nTrials                                                          % lo
     
     Screen('Flip', win.hndl);                                               % actual image change, we message it to the eye-tracke and set the timer
     Eyelink('message','SYNCTIME');                                          % so trial zero time is just after image change
+    Eyelink('command', '!*write_ioport 0x378 %d',96);                       % image appearance trigger, same as in my other free-viewing data
     tstart      = GetSecs;                                                  % timer trial start
     last_stim   = tstart;                                                   % in this case, this mean image appearace
  
    
-    Eyelink('message','METATR image %d',s_rand(nT).image);                  % we send relevant information to the eye-tracker file, here which image
+    Eyelink('message','METATR image %d',win.image_order(nT));               % we send relevant information to the eye-tracker file, here which image
     Eyelink('WaitForModeReady', 50);
-    Eyelink('message','METATR block %d',s_rand(nT).block);                  % block number
+    Eyelink('message','METATR block %d',win.blockcond(nT));                 % block condition
     Eyelink('WaitForModeReady', 50);
-    Eyelink('message','METATR block_start %d',s_rand(nT).block_start);      % if it was the first image in the block
+    Eyelink('message','METATR block_start %d',win.block_start(nT));         % if it was the first image in the block
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % TACTILE STIMULATION
@@ -435,12 +459,21 @@ for nT = 1:nTrials                                                          % lo
     stim_idx    = 1;
     while GetSecs<tstart+win.trial_minimum_length                           % lopp until trials finishes
         if GetSecs>last_stim+rvals(stim_idx)
-          stim = round(1+rand(1));
-          Eyelink('command', '!*write_ioport 0x378 %d',stim);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
-          WaitSecs(win.stim_dur);       
-          Eyelink('command', '!*write_ioport 0x378 %d',10);                 % stop stimulation
+          stim      = round(1+rand(1));                                     % 1 - left uncross; 2 - right uncross; 3 - left cross; 4 - right cross
+         
+          if win.blockcond(nT)==0
+            Eyelink('command', '!*write_ioport 0x378 %d',stim);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
+            WaitSecs(win.stim_dur);       
+            Eyelink('command', '!*write_ioport 0x378 %d',10);                 % stop stimulation
+          elseif win.blockcond(nT)==1
+            Eyelink('command', '!*write_ioport 0x378 %d',stim+2);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
+            WaitSecs(win.stim_dur);       
+            Eyelink('command', '!*write_ioport 0x378 %d',10);                 % stop stimulation
+          end
           last_stim = GetSecs;
-          stim_idx = stim_idx+1; 
+          stim_idx = stim_idx+1;
+          %for testing purporses
+          display(sprintf('\n Delivered stimulation at the %s hand %s',handstr{stim},crossstr{win.blockcond(nT)+1}))
         end
     end
     
@@ -448,9 +481,9 @@ for nT = 1:nTrials                                                          % lo
     Eyelink('StopRecording');
     Eyelink('WaitForModeReady', 50);
     if nT<nTrials                                                           % here we start next trial
-        if s_rand(nT+1).block_start ~= 1
+        if win.block_start(nT+1) ~= 1
             Eyelink('message','TRIALID %d', nT+1);
-            ima_x=ima_x+1;
+            ima_x = ima_x+1;
             Eyelink('Command','record_status_message ''Block %d Image %d Trial %d''',b,ima_x,nT+1);
             Eyelink('WaitForModeReady', 50);
             Eyelink('StartRecording');  
@@ -470,7 +503,7 @@ Eyelink('CloseFile');
 Eyelink('WaitForModeReady', 500); % make sure mode switching is ok
 if ~win.DoDummyMode
     % get EDF->DispPC: file size [bytes] if OK; 0 if cancelled; <0 if error
-    rcvStat = Eyelink('ReceiveFile', fnameEDF, pathEDF,1);
+    rcvStat = Eyelink('ReceiveFile', win.fnameEDF, pathEDF,1);
     if rcvStat > 0 % only sensible if real connect
         fprintf('EDF received to %s (%.1f MiB).\n',pathEDF,rcvStat/1024^2);
     else
@@ -478,6 +511,7 @@ if ~win.DoDummyMode
     end
 end
 
+save([pathEDF,win.fnameEDF(1:end-3),'mat'],win)
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CLOSING ALL DEVICES, PORTS, ETC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
