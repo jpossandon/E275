@@ -1,4 +1,4 @@
-function ok = define_tact_states(serial_port, on_time, cycle_time)
+function ok = E275_define_tact_states(serial_port, on_time, cycle_time)
     
 
     %define state 1: turn on stimulator #1

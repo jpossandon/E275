@@ -32,20 +32,20 @@
 
 % clear all                                                                 % we clear parameters?
 % this is for debugging
-win.DoDummyMode             = 1;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
+win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
 win.stim_test               = 0;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
-%  PsychDebugWindowConfiguration(0,0.5);                                    % this is for debugging with a single screen
+%PsychDebugWindowConfiguration(0,0.5);                                       % this is for debugging with a single screen
 
 % Screen parameters
-win.whichScreen             = 2;                                            % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
+win.whichScreen             = 0;                                            % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
 win.FontSZ                  = 20;                                           % font size
 win.bkgcolor                = 127;                                          % screen background color, 127 gray
-win.Vdst                    = 80;                                           % (!CHANGE!) viewer's distance from screen [cm]         
-win.res                     = [1280 960];                                   % (!CHANGE!) horizontal x vertical resolution [pixels]
-win.wdth                    = 53;                                           % (!CHANGE!) BENQ monitor Peters EEG&EyeTracking lab
-win.hght                    = 30;                                           % (!CHANGE!)
-win.pixxdeg                 = 45;                                           % (!CHANGE!)
-win.trial_minimum_length    = 8;                                            % (!CHANGE!) this is the minimal length of image presentation, afterwwards image changes contingent on a fixation occuring whithin a vertical strip arround the horizontal midline (defined by win.center_threshold)
+win.Vdst                    = 66;                                           % (!CHANGE!) viewer's distance from screen [cm]         
+win.res                     = [1920 1080];                                  %  horizontal x vertical resolution [pixels]
+win.wdth                    = 51;                                           %  51X28.7 cms is teh size of Samsung Syncmaster P2370 in BPN lab EEG rechts
+win.hght                    = 28.7;                                         % 
+win.pixxdeg                 = win.res(1)/(2*180/pi*atan(win.wdth/2/win.Vdst));% 
+win.trial_minimum_length    = 8;                                            % this is the minimal length of image presentation, afterwwards image changes contingent on a fixation occuring whithin a vertical strip arround the horizontal midline (defined by win.center_threshold)
 win.center_thershold        = 3*win.pixxdeg;                                % distance from the midline threshold for gaze contingent end of trial
 
 % Tactile stimulation settings (using the box stimulator)
@@ -67,13 +67,13 @@ win.calib_every             = 2;
 win.wn_vol                  = .2;                                           % (CHANGE?) adjust to subject comfort
 
 % Device input during the experiment
-win.in_dev                  = 2;                                            % (1) - keyboard  (2) - mouse  (3) - pedal (?)    
+win.in_dev                  = 1;                                            % (1) - keyboard  (2) - mouse  (3) - pedal (?)    
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % EXPERIMENT START
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % (!CHANGE!) adjust this to the appropiate screen
-display(sprintf('\n\n\n\n\n\nPlease check that the display screen resolution is set to 1280x960 and the screen borders are OK. \nIf screen resolution is changes matlab (and the terminal) need to be re-started.\n'))
+display(sprintf('\n\n\n\n\n\nPlease check that the display screen resolution is set to 1920x1080 and the screen borders are OK. \nIf screen resolution is changes matlab (and the terminal) need to be re-started.\n'))
 if ismac                                                                    % this bit is just so I can run the experiment in my mac without a problem
     exp_path                = '/Users/jossando/trabajo/E275/';              % path in my mac
 else
@@ -85,13 +85,10 @@ win.s_n                     = input('Subject number: ','s');                % su
 win.fnameEDF                = sprintf('s%02d_E275.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
 if exist([pathEDF win.fnameEDF],'file')                                         % checks whether there is a file with the same name
     rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',win.fnameEDF),'s');
-    if ~(strcmpi(rp,'n') || strcmpi(rp,'no'))
+    if (strcmpi(rp,'n') || strcmpi(rp,'no'))
         error('filename already exist')
     end
 end
-
-% load([exp_path 'E275_randomization.mat'])                                   % opens randomization file
-% s_rand = s_rand(str2num(win.s_n),:);                                            % select the randomization for the subject
 
 win.s_age                   = input('Subject age: ','s');
 win.s_hand                  = input('Subject handedness for writing (l/r): ','s');
@@ -105,10 +102,28 @@ ClockRandSeed();                                                            % th
 [IsConnected, IsDummy] = EyelinkInit(win.DoDummyMode);                      % open the link with the eyetracker
 assert(IsConnected==1, 'Failed to initialize EyeLink!')
  
-% ListenChar(2)                                                             % disable key listening by MATLAB windows(CTRL+C overridable)
+ListenChar(2)                                                             % disable key listening by MATLAB windows(CTRL+C overridable)
 
 prevVerbos = Screen('Preference','Verbosity', 2);                           % this two lines it to set how much we want the PTB to output in the command and display window 
 prevVisDbg = Screen('Preference','VisualDebugLevel',3);                     % verbosity-1 (default 3); vdbg-2 (default 4)
+Screen('Preference', 'SkipSyncTests', 2)                                    % for maximum accuracy and reliability
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% START PTB SCREEN
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[win.hndl, win.rect]        = Screen('OpenWindow',win.whichScreen,win.bkgcolor);   % starts PTB screen
+% if win.rect(3)~=1280 || win.rect(4)~=960                                    % (!CHANGE!) if resolution is not the correct one the experiment stops
+%     sca
+%     Eyelink('Shutdown');       % closes the link to the eye-tracker
+%     fclose(obj);               % closes the serial port
+%     error('Screen resolution must be 1280x960')
+% end
+[win.cntr(1), win.cntr(2)] = WindowCenter(win.hndl);                        % get where is the display screen center
+Screen('BlendFunction',win.hndl, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     % enable alpha blending for smooth drawing
+HideCursor(win.hndl);                                                       % this to hide the mouse
+Screen('TextSize', win.hndl, win.FontSZ);                                   % sets teh font size of the text to be diplayed
+KbName('UnifyKeyNames');                                                    % recommended, called again in EyelinkInitDefaults
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -139,24 +154,6 @@ else
     end
     fprintf('done');
 end
-
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% START PTB SCREEN
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-[win.hndl, win.rect]        = Screen('OpenWindow',win.whichScreen,win.bkgcolor);   % starts PTB screen
-% if win.rect(3)~=1280 || win.rect(4)~=960                                    % (!CHANGE!) if resolution is not the correct one the experiment stops
-%     sca
-%     Eyelink('Shutdown');       % closes the link to the eye-tracker
-%     fclose(obj);               % closes the serial port
-%     error('Screen resolution must be 1280x960')
-% end
-[win.cntr(1), win.cntr(2)] = WindowCenter(win.hndl);                        % get where is the display screen center
-Screen('BlendFunction',win.hndl, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     % enable alpha blending for smooth drawing
-% HideCursor(win.hndl);                                                     % (!CHANGE!) this to hide the mouse
-Screen('TextSize', win.hndl, win.FontSZ);                                   % sets teh font size of the text to be diplayed
-KbName('UnifyKeyNames');                                                    % recommended, called again in EyelinkInitDefaults
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -256,7 +253,7 @@ if win.stim_test
 
     DrawFormattedText(win.hndl,txt3,'center','center',255,55);                  % TEST LEFT STIMULATOR (three times)
     Screen('Flip', win.hndl);
-    WaitSecs(2);
+    WaitSecs(1);
     for e=1:3
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 1');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
@@ -271,7 +268,7 @@ if win.stim_test
 
     DrawFormattedText(win.hndl,txt4,'center','center',255,55);                  % TEST RIGHT STIMULATOR (three times)
     Screen('Flip', win.hndl);
-    WaitSecs(2);
+    WaitSecs(1);
     for e=1:3
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 2');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
@@ -286,7 +283,7 @@ if win.stim_test
 
     DrawFormattedText(win.hndl,txt5,'center','center',255,55);                  % TEST BOTH STIMULATORs (three times), this is not needed for this experiment but anyways
     Screen('Flip', win.hndl);
-    WaitSecs(2);
+    WaitSecs(1);
     for e=1:3
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 5');                    
@@ -312,7 +309,7 @@ end
 EyelinkDoTrackerSetup(win.el);                                              % calibration/validation (keyboard control)
 Eyelink('WaitForModeReady', 500);
 
-[image,map,alpha]   = imread([exp_path 'stimuli/blackongrt.png']);          % drift correction dot image
+[image,map,alpha]   = imread([exp_path 'stimuli/blackongrt.jpg']);          % drift correction dot image
 fixIndex            = Screen('MakeTexture', win.hndl, image);               % this is one of the way PTB deals with images, the image matrix is transformed in a texture with a handle that can be user later to draw the image in theb PRB screen
 
 
@@ -320,10 +317,10 @@ fixIndex            = Screen('MakeTexture', win.hndl, image);               % th
 % Randomization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-test_images         = 1:15;                                                 % all subject see the same test images
+test_images         = 400:415;                                                 % all subject see the same test images
 test_images         = test_images(1:win.test_trials);                       % in the same order, it does not matter
 win.image_order     = [test_images,...                                      % we randomize the order of the images, not that it really matters
-                        randsample(win.exp_trials,win.exp_trials)'];
+                        randperm(win.exp_trials,win.exp_trials)];
 nTrials             = win.test_trials+win.exp_trials;                       % Total # of trial
 nBlocks             = win.exp_trials./win.t_perblock;                       % # experimental block without counting the first test one
 win.block_start     = [1,zeros(1,win.test_trials-1),...                     % Trials that are block start
@@ -345,7 +342,7 @@ b                   = 0;                                                    % bl
 for nT = 1:nTrials                                                          % loop throught the experiment trials
     
     image                       = imread(sprintf('%sstimuli/image_%01d.jpg',...
-                                exp_path,win.image_order));      
+                                exp_path,win.image_order(nT)));      
 
     postextureIndex             = Screen('MakeTexture', win.hndl, image);   % makes the texture of this trial image
     
@@ -355,7 +352,7 @@ for nT = 1:nTrials                                                          % lo
 
     if  win.block_start(nT) == 1                                                % if it is a trial that starts a block   
         if s.Active                                                         % if the white noise was on, we sopt it here
-            PsychPortAudio('Stop', pahandle);
+            PsychPortAudio('Stop', pahandle)
         end
         
         % Hand position block intructions
@@ -373,8 +370,7 @@ for nT = 1:nTrials                                                          % lo
             draw_instructions_and_wait(txt9,win.bkgcolor,win.hndl,win.in_dev,1)
         end      
         b = b+1;
-        if nT>1 && ismember(nT, win.t_perblock+win.test_trials+1:...
-                win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
+        if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
             EyelinkDoTrackerSetup(win.el);
         end
         
@@ -398,8 +394,7 @@ for nT = 1:nTrials                                                          % lo
     % IMAGE DRAWING AND DECISION OF WHEN TO CHANGE
     if  win.block_start(nT) == 1                                            % this is the image that starts the block
         t1      = PsychPortAudio('Start', pahandle, 0, 0, 0);               % starts the white noise, third input is set to 0 so it loops until is sopped
-        s       = PsychPortAudio('GetStatus', pahandle);
-
+ 
         Screen('FillRect', win.hndl, win.bkgcolor);                         % remove what was writte or displayed
         Screen('DrawTexture', win.hndl, fixIndex);                          % drift correction image
         Screen('Flip', win.hndl);
@@ -419,14 +414,15 @@ for nT = 1:nTrials                                                          % lo
                 win.el.eye_used = win.el.LEFT_EYE;
             end
         end
+        s       = PsychPortAudio('GetStatus', pahandle);
 
     else                                                                   % this is the rest of the images
         Screen('DrawTexture', win.hndl, postextureIndex);
         while 1                                                             % images change contingent to the end of a fixation and the horixzontal position, we already did the waiting at the end of previous trial
             [data,type] = get_ETdata;
                 if type ==6 % start fixation
-%                     if abs(data.genx(win.el.eye_used+1)-win.res(1)./2)<win.center_thershold
-                    if abs(data.genx(win.el.eye_used)-win.res(1)./2)<win.center_thershold % (!TODO!) check this
+                     if abs(data.genx(win.el.eye_used+1)-win.res(1)./2)<win.center_thershold
+%                     if abs(data.genx(win.el.eye_used)-win.res(1)./2)<win.center_thershold % (!TODO!) check this
 %                        WaitSecs(.04+randsample(.01:.01:.1,1));              % this is a lag+jitter so the change of the image occurs after saccadic supression betwenn .05 and .150 sec
                         break
                     end
@@ -473,7 +469,7 @@ for nT = 1:nTrials                                                          % lo
           last_stim = GetSecs;
           stim_idx = stim_idx+1;
           %for testing purporses
-          display(sprintf('\n Delivered stimulation at the %s hand %s',handstr{stim},crossstr{win.blockcond(nT)+1}))
+          display(sprintf('\n Delivered stimulation at the %s hand %s  %4.2f',handstr{stim},crossstr{win.blockcond(nT)+1},GetSecs-tstart))
         end
     end
     
@@ -511,7 +507,7 @@ if ~win.DoDummyMode
     end
 end
 
-save([pathEDF,win.fnameEDF(1:end-3),'mat'],win)
+save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CLOSING ALL DEVICES, PORTS, ETC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

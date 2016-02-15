@@ -260,7 +260,7 @@ cmds(end+1) = EyelinkCmd( 'sample_rate = 500');
 % HV13 = 13-point, bicubic calibration
 % HV13 works best with larger angular displays (> +/-20°). It should NOT be
 % used when accurate data is needed from corners of calibrated area!
-cmds(end+1) = EyelinkCmd('calibration_type = HV9');
+cmds(end+1) = EyelinkCmd('calibration_type = HV13');
 % calibration sequencing "YES": auto, "NO": manual. With PD patients: NO!
 cmds(end+1) = EyelinkCmd('enable_automatic_calibration = NO');
 % should the Eyetracker generate its default target placements

@@ -10,7 +10,7 @@ noise_volume            = input('Volume to test [between 0 and 1]: ');      % Vo
 
 try
 freq                        = 48000;                                        % noise frequency in Hz
-dur                         = 6;                                           % noise duration in seconds
+dur                         = 10;                                           % noise duration in seconds
 wavedata                    = rand(1,freq*dur)*2-1;                         % the noise
 wavedata                    = [wavedata ; wavedata];                        % double for stereo
 nrchannels                  = 2;                                            % ditto
