@@ -1,13 +1,15 @@
 %clean_path
 %suj = str2num(getenv('SGE_TASK_ID'));
-suj = 1
+suj             = 1;
+eegfilename     = sprintf('s%0d',suj);
+suj             = sprintf('s%0d',suj);
 cfg             = eeg_etParams_E275('sujid',suj);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clean eye correction from this specific file
-pause(rand(1)*30)   % to get rid of that random error that seem to be cause
+% pause(rand(1)*30)   % to get rid of that random error that seem to be cause
 % by many computers accesing and saving the same file at the same moment 
-eegfilename     = sprintf('VP00%d',suj);
+
 clean_channel_corrections(cfg,eegfilename)
 
 

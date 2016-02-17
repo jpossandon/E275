@@ -82,7 +82,7 @@ end
 
 pathEDF                     = [exp_path 'data/'];                           % where the EDF files are going to be saved
 win.s_n                     = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
-win.fnameEDF                = sprintf('s%02d_E275.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
+win.fnameEDF                = sprintf('s%02d.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
 if exist([pathEDF win.fnameEDF],'file')                                         % checks whether there is a file with the same name
     rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',win.fnameEDF),'s');
     if (strcmpi(rp,'n') || strcmpi(rp,'no'))

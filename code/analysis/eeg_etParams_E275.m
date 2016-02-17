@@ -84,12 +84,12 @@ cfg.analysisfolder      = [cfg.expfolder 'analysis/'];
 
 %cfg.masterfile           = [cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) 'wc'];
 
-cfg.EDFfolder           = [cfg.datapath sprintf('vp00%d',cfg.sujid)  '/'];
+cfg.EDFfolder           = [cfg.datapath cfg.sujid  '/'];
 %cfg.xensor              = [cfg.datapath upper(cfg.sujid) '/xensor/'];
-cfg.eegfolder           = [cfg.datapath sprintf('vp00%d',cfg.sujid) '/'];
-cfg.matfolder           = [cfg.datapath sprintf('vp00%d',cfg.sujid) '/'];
-cfg.eyeanalysisfolder   = [cfg.analysisfolder 'eyedata/' sprintf('vp00%d',cfg.sujid) '/'];
-cfg.eegstats            = [cfg.analysisfolder 'eeg_stats/' sprintf('vp00%d',cfg.sujid) '/'];
+cfg.eegfolder           = [cfg.datapath cfg.sujid '/'];
+cfg.matfolder           = [cfg.datapath cfg.sujid '/'];
+cfg.eyeanalysisfolder   = [cfg.analysisfolder 'eyedata/' cfg.sujid '/'];
+cfg.eegstats            = [cfg.analysisfolder 'eeg_stats/' cfg.sujid '/'];
 %cfg.channelcorfolder    = [cfg.expfolder 'subjects_master_files/'];
 % cfg.tasks_info          = [    cfg.expfolder 'subjects_master_files/tasks_triggers.mat']; 
 
