@@ -1,6 +1,7 @@
 % E275 pipeline
 
 % Read the eyetracker file
+% b
 suj = 1;
 cfg             = eeg_etParams_E275('sujid',suj);
 eegfilename     = sprintf('VP00%d',suj);
