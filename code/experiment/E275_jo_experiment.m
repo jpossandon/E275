@@ -33,7 +33,7 @@
 % clear all                                                                 % we clear parameters?
 % this is for debugging
 win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
-win.stim_test               = 0;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
+win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
 %PsychDebugWindowConfiguration(0,0.5);                                       % this is for debugging with a single screen
 
 % Screen parameters
