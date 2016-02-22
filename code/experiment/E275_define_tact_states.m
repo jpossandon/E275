@@ -51,15 +51,15 @@ function ok = E275_define_tact_states(serial_port, on_time, cycle_time)
     fprintf(serial_port, 'V7,200,100,3\n');
     fprintf(serial_port, 'V8,200,100,3\n');
     
-    %define state 7: turn everything off (0111, this writes over all
+    %define state 1115: turn everything off (1111, this writes over all
     %previous number so it is not a problem as a trigger for the EEG
-    fprintf(serial_port, 'V1,200,100,7\n');
-    fprintf(serial_port, 'V2,200,100,7\n');
-    fprintf(serial_port, 'V3,200,100,7\n');
-    fprintf(serial_port, 'V4,200,100,7\n');
-    fprintf(serial_port, 'V5,200,100,7\n');
-    fprintf(serial_port, 'V6,200,100,7\n');
-    fprintf(serial_port, 'V7,200,100,7\n');
-    fprintf(serial_port, 'V8,200,100,7\n');
+    fprintf(serial_port, 'V1,200,100,15\n');
+    fprintf(serial_port, 'V2,200,100,15\n');
+    fprintf(serial_port, 'V3,200,100,15\n');
+    fprintf(serial_port, 'V4,200,100,15\n');
+    fprintf(serial_port, 'V5,200,100,15\n');
+    fprintf(serial_port, 'V6,200,100,15\n');
+    fprintf(serial_port, 'V7,200,100,15\n');
+    fprintf(serial_port, 'V8,200,100,15\n');
     
     ok = 1;
