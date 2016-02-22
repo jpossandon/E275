@@ -82,7 +82,7 @@ end
 
 pathEDF                     = [exp_path 'data/'];                           % where the EDF files are going to be saved
 win.s_n                     = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
-win.fnameEDF                = sprintf('s%02d_E275.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
+win.fnameEDF                = sprintf('s%02d.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
 if exist([pathEDF win.fnameEDF],'file')                                         % checks whether there is a file with the same name
     rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',win.fnameEDF),'s');
     if (strcmpi(rp,'n') || strcmpi(rp,'no'))
@@ -255,10 +255,11 @@ if win.stim_test
     Screen('Flip', win.hndl);
     WaitSecs(1);
     for e=1:3
+        Eyelink('command', '!*write_ioport 0x378 0');                  
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 1');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);                                                 % for the specified duration
-        Eyelink('command', '!*write_ioport 0x378 10');                          % stop stimulation
+        Eyelink('command', '!*write_ioport 0x378 7');                          % stop stimulation
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
@@ -270,10 +271,11 @@ if win.stim_test
     Screen('Flip', win.hndl);
     WaitSecs(1);
     for e=1:3
+        Eyelink('command', '!*write_ioport 0x378 0');
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 2');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);       
-        Eyelink('command', '!*write_ioport 0x378 10');                          % stop stimulation
+        Eyelink('command', '!*write_ioport 0x378 7');                          % stop stimulation
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
@@ -285,10 +287,11 @@ if win.stim_test
     Screen('Flip', win.hndl);
     WaitSecs(1);
     for e=1:3
+        Eyelink('command', '!*write_ioport 0x378 0');
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 5');                    
         WaitSecs(win.stim_dur);       
-        Eyelink('command', '!*write_ioport 0x378 10');    
+        Eyelink('command', '!*write_ioport 0x378 7');    
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
@@ -443,7 +446,7 @@ for nT = 1:nTrials                                                          % lo
     Eyelink('message','METATR block %d',win.blockcond(nT));                 % block condition
     Eyelink('WaitForModeReady', 50);
     Eyelink('message','METATR block_start %d',win.block_start(nT));         % if it was the first image in the block
-
+    Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % TACTILE STIMULATION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -460,19 +463,21 @@ for nT = 1:nTrials                                                          % lo
           if win.blockcond(nT)==0
             Eyelink('command', '!*write_ioport 0x378 %d',stim);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
             WaitSecs(win.stim_dur);       
-            Eyelink('command', '!*write_ioport 0x378 %d',10);                 % stop stimulation
+            Eyelink('command', '!*write_ioport 0x378 %d',7);                 % stop stimulation
           elseif win.blockcond(nT)==1
             Eyelink('command', '!*write_ioport 0x378 %d',stim+2);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
             WaitSecs(win.stim_dur);       
-            Eyelink('command', '!*write_ioport 0x378 %d',10);                 % stop stimulation
+            Eyelink('command', '!*write_ioport 0x378 %d',7);                 % stop stimulation
           end
           last_stim = GetSecs;
           stim_idx = stim_idx+1;
+          Eyelink('command', '!*write_ioport 0x378 %d',0);                  % flush the parallel port
           %for testing purporses
           display(sprintf('\n Delivered stimulation at the %s hand %s  %4.2f',handstr{stim},crossstr{win.blockcond(nT)+1},GetSecs-tstart))
         end
     end
     
+    Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port for last time
     Eyelink('WaitForModeReady', 50);
     Eyelink('StopRecording');
     Eyelink('WaitForModeReady', 50);
