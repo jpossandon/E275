@@ -1,13 +1,16 @@
 %clean_path
+%%
 %suj = str2num(getenv('SGE_TASK_ID'));
-suj = 1
+suj             = 1;
+eegfilename     = sprintf('s%02d',suj);
+suj             = sprintf('s%02d',suj);
 cfg             = eeg_etParams_E275('sujid',suj);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clean eye correction from this specific file
-pause(rand(1)*30)   % to get rid of that random error that seem to be cause
+% pause(rand(1)*30)   % to get rid of that random error that seem to be cause
 % by many computers accesing and saving the same file at the same moment 
-eegfilename     = sprintf('VP00%d',suj);
+
 clean_channel_corrections(cfg,eegfilename)
 
 
@@ -67,6 +70,7 @@ save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.cle
 if strcmp(cfg.task_id,'eo') || strcmp(cfg.task_id,'ec') || strcmp(cfg.task_id,'p3'),cfg.eyedata = 'no';end
 expica(cfg)
 
+%%
 % the second sweep is over data clean from eye-movement compontent and muscle artifact components, we can
 % use narrower thresholds here, we check visually that everything is ok and then we run ICA again
 clear cfg
@@ -96,7 +100,7 @@ cfg             = eeg_etParams_E275(cfg,...
 [bad_a,badchans_a,channelbad_a]     = badsegments(cfg,value_a,tot_sample_a,cfg.clean_range_threshold);
 % 
 % % bad because of trend, longer
- cfg                                = eeg_etParams_CEM(cfg,'clean_movwin_length',1,...
+ cfg                                = eeg_etParams_E275(cfg,'clean_movwin_length',1,...
                                           'clean_mov_step',.06);
 [value,tot_sample]                  = trend_artifact(cfg);
 [bad_t,badchans_t,channelbad_t]     = badsegments(cfg,value,tot_sample,cfg.clean_trend_threshold); %TODO: borders need to be readjusted to hthe length of gthe moving window
@@ -110,14 +114,14 @@ cfg_clean                           = cfg;
 % save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','channelbad','cfg_clean','value_g','tot_sample_g','value_a','tot_sample_a') % we save all this for now until we now the good seetings
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','channelbad','cfg_clean') % TODO: info about the cleaning parameters
 
-cfg                                 = eeg_etParams_CEM(cfg,'clean_bad_channel_criteria',.20);
+cfg                                 = eeg_etParams_E275(cfg,'clean_bad_channel_criteria',.20);
 check_session(cfg)
 
 % re-check bad segments now whitout taking in accound bad channels (done in badsegments)
-cfg                                = eeg_etParams_CEM(cfg,'clean_movwin_length',.256,'clean_mov_step',.006);
+cfg                                = eeg_etParams_E275(cfg,'clean_movwin_length',.256,'clean_mov_step',.006);
 [bad_g,badchans_g]                 = badsegments(cfg,value_g,tot_sample_g,cfg.clean_freq_threshold);
 [bad_a2,badchans_a2]                 = badsegments(cfg,value_a,tot_sample_a,cfg.clean_range_threshold);
-cfg                                = eeg_etParams_CEM(cfg,'clean_movwin_length',1,'clean_mov_step',.06);
+cfg                                = eeg_etParams_E275(cfg,'clean_movwin_length',1,'clean_mov_step',.06);
 [bad_t,badchans_t]                 = badsegments(cfg,value,tot_sample,cfg.clean_trend_threshold); %TODO: borders need to be readjusted to hthe length of gthe moving window
 
 % we reuse the very bad segments becuase of range of step1 to get rid of
@@ -128,20 +132,23 @@ load([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename 'pre'],
 [bad,badchans]                     = combine_bad({bad_a;bad_a2;bad_g;bad_t},{badchans_a,badchans_a2,badchans_g,badchans_t},cfg.clean_minclean_interval);
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','-append') % TODO: info about the cleaning parameters
 
-% visual_clean(cfg)
-% 
+cfgvis             = eeg_etParams_E275(cfg,...
+                                      'remove_eye',1,...
+                                      'remove_m',1,'raw',1); 
+visual_clean(cfgvis)
+%% 
 % run second definitive ICA
 if strcmp(cfg.task_id,'eo') || strcmp(cfg.task_id,'ec') || strcmp(cfg.task_id,'p3'),cfg.eyedata = 'no';end
  expica(cfg)
 
-
+%%
 % and we do the cleaning one more time with the final ICA weights
 clear cfg
-cfg             = eeg_etParams_CEM('sujid',suj);
-cfg             = eeg_etParams_CEM(cfg,...
-                                   'task_id',exp.tasks_done.task_id{task},...
-                                   'filename',exp.tasks_done.filename{task},...
-                                   'event',[exp.tasks_done.filename{task} '.vmrk'],...
+cfg             = eeg_etParams_E275('sujid',suj);
+cfg             = eeg_etParams_E275(cfg,...
+                                   'task_id','fv_touch',...
+                                   'filename',eegfilename,...
+                                   'event',[eegfilename '.vmrk'],...
                                    'analysisname','cleaning',...
                                    'clean_exclude_eye',0,...
                                    'clean_foi',30:5:120,...
@@ -163,7 +170,7 @@ cfg             = eeg_etParams_CEM(cfg,...
 [bad_a,badchans_a,channelbad_a]     = badsegments(cfg,value_a,tot_sample_a,cfg.clean_range_threshold);
 % 
 % % bad because of trend, longer
- cfg                                = eeg_etParams_CEM(cfg,'clean_movwin_length',1,...
+ cfg                                = eeg_etParams_E275(cfg,'clean_movwin_length',1,...
                                           'clean_mov_step',.06);
 [value,tot_sample]                  = trend_artifact(cfg);
 [bad_t,badchans_t,channelbad_t]     = badsegments(cfg,value,tot_sample,cfg.clean_trend_threshold); %TODO: borders need to be readjusted to hthe length of gthe moving window

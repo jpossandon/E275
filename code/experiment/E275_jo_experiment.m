@@ -33,7 +33,7 @@
 % clear all                                                                 % we clear parameters?
 % this is for debugging
 win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
-win.stim_test               = 0;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
+win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
 %PsychDebugWindowConfiguration(0,0.5);                                       % this is for debugging with a single screen
 
 % Screen parameters
@@ -51,7 +51,7 @@ win.center_thershold        = 3*win.pixxdeg;                                % di
 % Tactile stimulation settings (using the box stimulator)
 win.tact_freq               = 200;                                          % frequency of stimulation in Hz
 win.cycle_time              = 1000/win.tact_freq*1000;                      % cycle_time sets frequency in microseconds (1000 microsecond is one milisecond)
-win.on_time                 = win.cycle_time-1;                             % on_time specifies intensity. If stimulator is on for half of the cycle time, intensity is maximal
+win.on_time                 = win.cycle_time-1/2*win.cycle_time;                             % on_time specifies intensity. If stimulator is on for half of the cycle time, intensity is maximal
 win.stim_dur                = .025;                                         % duration of tactile stimulation. The vibrator takes some time to stop its motion so for around 50 ms we use 25 ms of stimulation time (ask Tobias for the exact latencies they have measured)
 win.stim_min_latency        = .750;                                         % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
 win.halflife                = 8/3;                                          % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
@@ -82,7 +82,7 @@ end
 
 pathEDF                     = [exp_path 'data/'];                           % where the EDF files are going to be saved
 win.s_n                     = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
-win.fnameEDF                = sprintf('s%02d_E275.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
+win.fnameEDF                = sprintf('s%02d.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
 if exist([pathEDF win.fnameEDF],'file')                                         % checks whether there is a file with the same name
     rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',win.fnameEDF),'s');
     if (strcmpi(rp,'n') || strcmpi(rp,'no'))
@@ -102,11 +102,11 @@ ClockRandSeed();                                                            % th
 [IsConnected, IsDummy] = EyelinkInit(win.DoDummyMode);                      % open the link with the eyetracker
 assert(IsConnected==1, 'Failed to initialize EyeLink!')
  
-ListenChar(2)                                                             % disable key listening by MATLAB windows(CTRL+C overridable)
+% ListenChar(2)                                                             % disable key listening by MATLAB windows(CTRL+C overridable)
 
 prevVerbos = Screen('Preference','Verbosity', 2);                           % this two lines it to set how much we want the PTB to output in the command and display window 
 prevVisDbg = Screen('Preference','VisualDebugLevel',3);                     % verbosity-1 (default 3); vdbg-2 (default 4)
-Screen('Preference', 'SkipSyncTests', 2)                                    % for maximum accuracy and reliability
+Screen('Preference', 'SkipSyncTests', 0)                                    % for maximum accuracy and reliability
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % START PTB SCREEN
@@ -255,10 +255,11 @@ if win.stim_test
     Screen('Flip', win.hndl);
     WaitSecs(1);
     for e=1:3
+        Eyelink('command', '!*write_ioport 0x378 0');                  
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 1');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);                                                 % for the specified duration
-        Eyelink('command', '!*write_ioport 0x378 10');                          % stop stimulation
+        Eyelink('command', '!*write_ioport 0x378 15');                          % stop stimulation
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
@@ -270,10 +271,11 @@ if win.stim_test
     Screen('Flip', win.hndl);
     WaitSecs(1);
     for e=1:3
+        Eyelink('command', '!*write_ioport 0x378 0');
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 2');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);       
-        Eyelink('command', '!*write_ioport 0x378 10');                          % stop stimulation
+        Eyelink('command', '!*write_ioport 0x378 15');                          % stop stimulation
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
@@ -285,11 +287,13 @@ if win.stim_test
     Screen('Flip', win.hndl);
     WaitSecs(1);
     for e=1:3
+        Eyelink('command', '!*write_ioport 0x378 0');
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 5');                    
         WaitSecs(win.stim_dur);       
-        Eyelink('command', '!*write_ioport 0x378 10');    
+        Eyelink('command', '!*write_ioport 0x378 15');    
     end
+    Eyelink('command', '!*write_ioport 0x378 0');
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
     elseif win.in_dev == 2
@@ -443,7 +447,7 @@ for nT = 1:nTrials                                                          % lo
     Eyelink('message','METATR block %d',win.blockcond(nT));                 % block condition
     Eyelink('WaitForModeReady', 50);
     Eyelink('message','METATR block_start %d',win.block_start(nT));         % if it was the first image in the block
-
+    Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % TACTILE STIMULATION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -460,19 +464,21 @@ for nT = 1:nTrials                                                          % lo
           if win.blockcond(nT)==0
             Eyelink('command', '!*write_ioport 0x378 %d',stim);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
             WaitSecs(win.stim_dur);       
-            Eyelink('command', '!*write_ioport 0x378 %d',10);                 % stop stimulation
           elseif win.blockcond(nT)==1
             Eyelink('command', '!*write_ioport 0x378 %d',stim+2);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
             WaitSecs(win.stim_dur);       
-            Eyelink('command', '!*write_ioport 0x378 %d',10);                 % stop stimulation
           end
+          Eyelink('command', '!*write_ioport 0x378 %d',15);                 % stop stimulation
           last_stim = GetSecs;
+          WaitSecs(0.03);
           stim_idx = stim_idx+1;
+          Eyelink('command', '!*write_ioport 0x378 %d',0);                  % flush the parallel port
           %for testing purporses
           display(sprintf('\n Delivered stimulation at the %s hand %s  %4.2f',handstr{stim},crossstr{win.blockcond(nT)+1},GetSecs-tstart))
         end
     end
     
+    Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port for last time
     Eyelink('WaitForModeReady', 50);
     Eyelink('StopRecording');
     Eyelink('WaitForModeReady', 50);
@@ -519,9 +525,9 @@ save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
 % cf. http://tech.groups.yahoo.com/group/psychtoolbox/message/12732
 % not anymore it seems
 %if ~IsLinux(true), Eyelink('Shutdown'); end
+PsychPortAudio('Close', pahandle);                                          % close the audio device
 Eyelink('Shutdown');                                                        % close the link to the eye-tracker
 
-PsychPortAudio('Close', pahandle);                                          % close the audio device
 Screen('CloseAll');                                                         % close the PTB screen
 Screen('Preference','Verbosity', prevVerbos);                               % restore previous verbosity
 Screen('Preference','VisualDebugLevel', prevVisDbg);                        % restore prev vis dbg
