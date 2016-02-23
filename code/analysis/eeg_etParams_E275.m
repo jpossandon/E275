@@ -78,8 +78,9 @@ else
     end
 end
 cfg.datapath            = [cfg.expfolder 'data/'];
-cfg.chanloc             = [cfg.expfolder 'easycapM1E275.txt'];
-cfg.chanfile            = [cfg.expfolder 'channel_loc'];
+cfg.chanloc             = [cfg.expfolder 'channels/easycapM1E275.txt'];              % text file with positions
+cfg.chanlocs            = [cfg.expfolder 'channels/chanlocseasycapM1E275'];             % eeglab ready format
+cfg.chanfile            = [cfg.expfolder 'channels/eleceasycapM1E275'];
 cfg.analysisfolder      = [cfg.expfolder 'analysis/'];
 
 %cfg.masterfile           = [cfg.expfolder 'subjects_master_files/' upper(cfg.sujid) 'wc'];
