@@ -1,11 +1,12 @@
 %clean_path
 %%
 %suj = str2num(getenv('SGE_TASK_ID'));
-suj             = 1;
+suj             = 2;
 eegfilename     = sprintf('s%02d',suj);
 suj             = sprintf('s%02d',suj);
 cfg             = eeg_etParams_E275('sujid',suj);
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clean eye correction from this specific file
 % pause(rand(1)*30)   % to get rid of that random error that seem to be cause
@@ -16,7 +17,7 @@ clean_channel_corrections(cfg,eegfilename)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+%%
 % correct channels (inversions) (this is inside all code)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,7 +68,6 @@ check_session(cfg)
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','bad_a','badchans_a','-append') % TODO: info about the cleaning parameters
 
 % run first ICA
-if strcmp(cfg.task_id,'eo') || strcmp(cfg.task_id,'ec') || strcmp(cfg.task_id,'p3'),cfg.eyedata = 'no';end
 expica(cfg)
 
 %%
@@ -132,13 +132,13 @@ load([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename 'pre'],
 [bad,badchans]                     = combine_bad({bad_a;bad_a2;bad_g;bad_t},{badchans_a,badchans_a2,badchans_g,badchans_t},cfg.clean_minclean_interval);
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','-append') % TODO: info about the cleaning parameters
 
-cfgvis             = eeg_etParams_E275(cfg,...
-                                      'remove_eye',1,...
-                                      'remove_m',1,'raw',1); 
-visual_clean(cfgvis)
+%%
+% cfgvis             = eeg_etParams_E275(cfg,...
+%                                       'remove_eye',1,...
+%                                       'remove_m',1,'raw',1); 
+% visual_clean(cfgvis)
 %% 
 % run second definitive ICA
-if strcmp(cfg.task_id,'eo') || strcmp(cfg.task_id,'ec') || strcmp(cfg.task_id,'p3'),cfg.eyedata = 'no';end
  expica(cfg)
 
 %%
