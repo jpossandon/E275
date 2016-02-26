@@ -1,27 +1,6 @@
+function E275_generate_eye_data(subjects)
 % generate data experiment touch
 
-subjects            = [1,2];
-cfg.edfreadpath     = '/net/store/users/jossando/edfread/build/linux64/';
-cfg.EDFfolder       = '/net/store/nbp/touch/data/';
-cfg.eyes            = 'monoocular';
-
-for s = subjects
-    cfg.filename        = sprintf('s%02d',s);
-    eyedata             = eyeread(cfg); 
-    
-    eegfilename         = sprintf('s%02d',s);
-    suj                 = sprintf('s%02d',suj);
-
-    cfg                 = eeg_etParams_E275('sujid',suj,'expfolder','/net/store/nbp/projects/EEG/E275/',...      % to run things in different environments
-                                    'task_id','fv_touch',...
-                                    'filename',eegfilename,...
-                                    'event',[eegfilename '.vmrk'],...
-                                    'trial_trig_eeg',{'S 96'},...
-                                    'trial_trig_et',{'96'});      % experiment parameters 
-                                
-    eyedata             = synchronEYEz(cfg, eyedata);   
-    save([cfg.eyeanalysisfolder cfg.filename 'eye'],'eyedata')
-    
     auxdata             = eyedata.events;
     
     auxdata.block       = zeros(1,length(auxdata.start));
@@ -57,12 +36,12 @@ for s = subjects
         end
     end
     auxdata.subject     = s*ones(1,length(auxdata.trial));
-    data                = struct_up('data',auxdata,2);
-    stim                = struct_up('stim',stimdata,2);
-    sample              = struct_up('sample',sampledata,2);
-      
+   % data                = struct_up('data',auxdata,2);
+   % stim                = struct_up('stim',stimdata,2);
+   % sample              = struct_up('sample',sampledata,2);
+      save(sprintf('%salleyes%02d',cfg.EDFfolder,s),'auxdata','stimdata','sampledata') 
 end
      
-save('/net/store/nbp/touch/data/alleyedata','data','stim')
-save('/net/store/nbp/touch/data/allsampledata','sample')
+% save('/net/store/nbp/touch/data/alleyedata','data','stim')
+% save('/net/store/nbp/touch/data/allsampledata','sample')
     

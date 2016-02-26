@@ -80,9 +80,9 @@ else
     exp_path                = '/home/th/Experiments/E275/';
 end
 
-pathEDF                     = [exp_path 'data/'];                           % where the EDF files are going to be saved
 win.s_n                     = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
 win.fnameEDF                = sprintf('s%02d.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
+pathEDF                     = [exp_path 'data/' sprintf('s%02d/',str2num(win.s_n))];                           % where the EDF files are going to be saved
 if exist([pathEDF win.fnameEDF],'file')                                         % checks whether there is a file with the same name
     rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',win.fnameEDF),'s');
     if (strcmpi(rp,'n') || strcmpi(rp,'no'))
@@ -260,6 +260,7 @@ if win.stim_test
         Eyelink('command', '!*write_ioport 0x378 1');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);                                                 % for the specified duration
         Eyelink('command', '!*write_ioport 0x378 15');                          % stop stimulation
+        WaitSecs(win.stim_dur);
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
@@ -276,6 +277,7 @@ if win.stim_test
         Eyelink('command', '!*write_ioport 0x378 2');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);       
         Eyelink('command', '!*write_ioport 0x378 15');                          % stop stimulation
+        WaitSecs(win.stim_dur);
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
         waitForKB_linux({'space'});                                             % press the space key in the keyboard
@@ -292,6 +294,7 @@ if win.stim_test
         Eyelink('command', '!*write_ioport 0x378 5');                    
         WaitSecs(win.stim_dur);       
         Eyelink('command', '!*write_ioport 0x378 15');    
+        WaitSecs(win.stim_dur);
     end
     Eyelink('command', '!*write_ioport 0x378 0');
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
