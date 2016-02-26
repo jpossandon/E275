@@ -1,6 +1,11 @@
 function E275_generate_eye_data(subjects)
 % generate data experiment touch
-
+cfg.edfreadpath     = '/home/th/code/edfread/build/linux64/';
+cfg.eyes            = 'monoocular';
+for s = subjects
+    cfg.filename        = sprintf('s%02d',s);
+    cfg.EDFfolder       = sprintf('/home/th/Experiments/E275/data/s%02d/',s);
+    eyedata             = eyeread(cfg); 
     auxdata             = eyedata.events;
     
     auxdata.block       = zeros(1,length(auxdata.start));
@@ -36,10 +41,11 @@ function E275_generate_eye_data(subjects)
         end
     end
     auxdata.subject     = s*ones(1,length(auxdata.trial));
+    eyedata.events      = auxdata;
    % data                = struct_up('data',auxdata,2);
    % stim                = struct_up('stim',stimdata,2);
    % sample              = struct_up('sample',sampledata,2);
-      save(sprintf('%salleyes%02d',cfg.EDFfolder,s),'auxdata','stimdata','sampledata') 
+      save(sprintf('%ss%02deye',cfg.EDFfolder,s),'auxdata','stimdata','sampledata','eyedata') 
 end
      
 % save('/net/store/nbp/touch/data/alleyedata','data','stim')
