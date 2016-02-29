@@ -106,7 +106,7 @@ assert(IsConnected==1, 'Failed to initialize EyeLink!')
 
 prevVerbos = Screen('Preference','Verbosity', 2);                           % this two lines it to set how much we want the PTB to output in the command and display window 
 prevVisDbg = Screen('Preference','VisualDebugLevel',3);                     % verbosity-1 (default 3); vdbg-2 (default 4)
-Screen('Preference', 'SkipSyncTests', 0)                                    % for maximum accuracy and reliability
+Screen('Preference', 'SkipSyncTests', 2)                                    % for maximum accuracy and reliability
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % START PTB SCREEN
@@ -368,11 +368,11 @@ for nT = 1:nTrials                                                          % lo
         elseif nT ==1 && win.blockcond(nT) == 1                              % practice trials amd crossed, this according to randomization should be unnecesary
             draw_instructions_and_wait(txt7,win.bkgcolor,win.hndl,win.in_dev,1)
         elseif win.blockcond(nT) == 0                % uncrossed
-            txt8    = double(['Block ' num2str(b) '/' num2str(nBlocks) ' beendet \n Pause \n  F' 252 'r den n' 228 ... 
+            txt8    = double(['Block ' num2str(b) '/' num2str(nBlocks+1) ' beendet \n Pause \n  F' 252 'r den n' 228 ... 
             'chsten Block bitte die H' 228 'nde parallel positionieren (parallel). \n Zum Fortfahren die ' txtdev]);
             draw_instructions_and_wait(txt8,win.bkgcolor,win.hndl,win.in_dev,1)
         elseif win.blockcond(nT) == 1                % crossed
-            txt9    = double(['Block ' num2str(b) '/' num2str(nBlocks) ' beendet \n Pause \n  F' 252 'r den n' 228 ... 
+            txt9    = double(['Block ' num2str(b) '/' num2str(nBlocks+1) ' beendet \n Pause \n  F' 252 'r den n' 228 ... 
             'chsten Block bitte die H' 228 'nde ' 252 'berkreuzen (crossed). \n Zum Fortfahren die ' txtdev]);
             draw_instructions_and_wait(txt9,win.bkgcolor,win.hndl,win.in_dev,1)
         end      
