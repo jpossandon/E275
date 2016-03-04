@@ -10,7 +10,7 @@
 
 % Analysis parameters
 p.times_tflock              = [1500 1000];
-p.analysis_type             = {'ICAem'}; %'plain' / 'ICAe' / 'ICAm' / 'ICAem' 
+p.analysis_type             = {'plain'}; %'plain' / 'ICAe' / 'ICAm' / 'ICAem' 
 p.bsl                       = [-1.5 -1]; 
 p.reref                     = 'yes';
 p.keep                      = 'no';
@@ -25,7 +25,7 @@ p.cfgTFR.foi                = 4:1:35;
 p.cfgTFR.t_ftimwin          = .5*ones(1,length(p.cfgTFR.foi));
 p.cfgTFR.toi                = (-p.times_tflock(1):20:p.times_tflock(2))/1000;	
 
-tk                          = 2; % subject number
+tk                          = 4; % subject number
 
 if ismac    
     cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
@@ -86,10 +86,11 @@ cfgp.elec       = elec;
 cfgp.interactive    = 'yes';
 cfgp.baseline       = p.bsl ;
 cfgp.baselinetype   = 'relative';
+cfgp.trials     = 51:70
 % cfgp.ylim           = [0 40];
 % cfgp.xlim           = [-.5 0]
-cfgp.zlim           = [.5 1.5]
-data =TFRallt_LCsac.(p.analysis_type{at});
+% cfgp.zlim           = [.5 1.5]
+data =TFRallt_LUsac.(p.analysis_type{at});
 % data.powspLFRallt_LU.ICAemUvsCa.powspctrm)
 
 figure

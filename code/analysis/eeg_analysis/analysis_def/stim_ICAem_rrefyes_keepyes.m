@@ -2,7 +2,7 @@ p.subj                  = p.subj;
 p.times_imlock          = [500 600];
 % p.minamp              = 0;
 % p.prev                = {-1,1,'origstart','>0'};
-p.npermute              = 400;
+p.npermute              = 1000;
 p.data                  = 'stim';
 p.rref                  = 'yes';
 p.keep                  = 'no';
@@ -10,8 +10,8 @@ p.plot                  = 1;
 p.analysis_type         = {'ICAem'};
 
 % p.sac                 = 1;
-p.bsl                   = [-.5 -.1];
-p.interval              = [-.2 .5 .02]; % [start end step]
+p.bsl                   = [-.2 0];
+p.interval              = [-.2 .5 .05]; % [start end step]
 p.colorlim              = [-10 10];
 
 p.model                 = 1;

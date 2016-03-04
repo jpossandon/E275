@@ -1,7 +1,7 @@
 %clean_path
 %%
 %suj = str2num(getenv('SGE_TASK_ID'));
-suj             = 2;
+suj             = 4;
 eegfilename     = sprintf('s%02d',suj);
 suj             = sprintf('s%02d',suj);
 cfg             = eeg_etParams_E275('sujid',suj);
@@ -133,9 +133,9 @@ load([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename 'pre'],
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','-append') % TODO: info about the cleaning parameters
 
 %%
-% cfgvis             = eeg_etParams_E275(cfg,...
-%                                       'remove_eye',1,...
-%                                       'remove_m',1,'raw',1); 
+ cfgvis             = eeg_etParams_E275(cfg,...
+                                       'remove_eye',0,...
+                                       'remove_m',1,'raw',1); 
 % visual_clean(cfgvis)
 %% 
 % run second definitive ICA
