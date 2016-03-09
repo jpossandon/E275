@@ -1,6 +1,7 @@
 % Time-series analysis locked to tactile stimulation
 %%
-clear
+eeglab
+clear all
 E275_params                                 % basic experimental parameters               % 
 fmodel                      = 1;            % wich glm model
 E275_models                                 % the models
