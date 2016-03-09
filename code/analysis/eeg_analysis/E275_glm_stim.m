@@ -7,9 +7,9 @@ E275_models                                 % the models
 
 %%
 % subject configuration and data
-tk = 4
+%tk = 4
 %  for tk = p.subj;
-% tk = str2num(getenv('SGE_TASK_ID'));
+tk = str2num(getenv('SGE_TASK_ID'));
     if ismac    
         cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),...
             'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
@@ -29,7 +29,7 @@ tk = 4
 
     mkdir([cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/'])
       E275_base_trl_event_def_stim                                        % trial configuration  
-p.npermute = 4
+
          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GLM ANALYSIS 
