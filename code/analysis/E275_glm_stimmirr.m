@@ -1,6 +1,7 @@
 % Time-series analysis locked to tactile stimulation
 %%
-clear
+eeglab 
+clear all
 E275_params                                 % basic experimental parameters               % 
 fmodel                      = 1;            % wich glm model
 E275_models                                 % the models
@@ -9,7 +10,7 @@ E275_models                                 % the models
 % subject configuration and data
 tk = 4
 %  for tk = p.subj;
-% tk = str2num(getenv('SGE_TASK_ID'));
+%  tk = str2num(getenv('SGE_TASK_ID'));
     if ismac    
         cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),...
             'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
@@ -29,7 +30,6 @@ tk = 4
 
     mkdir([cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/'])
       E275_base_trl_event_def_stim                                        % trial configuration  
-p.npermute = 5
 
 %%
 % difference plot U vs C pooled hand by mirroring
@@ -47,8 +47,8 @@ difflabels      = {'Unc','Cross'};
 compidx         = [3 1;4 2];
 
 
-Unc.(p.analysis_type{1})   = ft_timelockanalysis([],ft_appenddata([],ERPallstim(3).(p.analysis_type{1}),ERPallstim(1).(p.analysis_type{1})));
-Cross.(p.analysis_type{1}) = ft_timelockanalysis([],ft_appenddata([],ERPallstim(4).(p.analysis_type{1}),ERPallstim(2).(p.analysis_type{1})));
+Unc.(p.analysis_type{1})   = ft_appendtimelock([],ERPallstim(3).(p.analysis_type{1}),ERPallstim(1).(p.analysis_type{1}));
+Cross.(p.analysis_type{1}) = ft_appendtimelock([],ERPallstim(4).(p.analysis_type{1}),ERPallstim(2).(p.analysis_type{1}));
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -83,7 +83,7 @@ for np = 1:p.npermute
 end
 modelos_stim_mirr = sigclusthresh(modelos,elec,.05);
 str_sav = 'save([cfg_eeg.analysisfolder cfg_eeg.analysisname ''/ERP/ERP_'' cfg_eeg.sujid ''_''  p.analysisname]';
-str_sav = [str_sav ',''ERPallstim'',''modelos_stim_mirr'''];
+str_sav = [str_sav ',''modelos_stim_mirr'''];
 eval([str_sav ',''p'',''trls'',''cfg_eeg'');'])
   
 
@@ -92,6 +92,7 @@ eval([str_sav ',''p'',''trls'',''cfg_eeg'');'])
 % plotting betas each subject  
 % stimlock
 modelplot = modelos_stim_mirr;
+p.coeff = {'const','cross'};
 for b=1:size(modelplot.B,2)
     betas.avg       = squeeze(modelplot.B(:,b,:));
     collim          =[-6*std(betas.avg(:)) 6*std(betas.avg(:))];
@@ -99,7 +100,7 @@ for b=1:size(modelplot.B,2)
     betas.dof       = 1;
     betas.n         = sum(modelplot.n);
 
-    fh = plot_stat(cfg_eeg,modelplot.TCFEstat(b),betas,[],[-.1 .5 .02],collim,.05,sprintf('Beta:%s',p.coeff{b}),1);
+    fh = plot_stat(cfg_eeg,modelplot.TCFEstat(b),betas,[],p.interval,collim,.05,sprintf('Beta:%s',p.coeff{b}),1);
     saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/' cfg_eeg.sujid '_glm_stimlock_' p.coeff{b} '_' p.analysis_type{1}],'fig')
     close(fh)
 end
