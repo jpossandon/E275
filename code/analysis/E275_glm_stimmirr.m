@@ -101,6 +101,6 @@ for b=1:size(modelplot.B,2)
     betas.n         = sum(modelplot.n);
 
     fh = plot_stat(cfg_eeg,modelplot.TCFEstat(b),betas,[],p.interval,collim,.05,sprintf('Beta:%s',p.coeff{b}),1);
-    saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/' cfg_eeg.sujid '_glm_stimlock_' p.coeff{b} '_' p.analysis_type{1}],'fig')
+    saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/' cfg_eeg.sujid '_glm_stimlockmirr_' p.coeff{b} '_' p.analysis_type{1}],'fig')
     close(fh)
 end
