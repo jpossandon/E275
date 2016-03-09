@@ -9,7 +9,7 @@
 % sge               = str2num(getenv('SGE_TASK_ID'));
 clear
 % Analysis parameters
-p.times_tflock              = [1000 2250];
+p.times_tflock              = [1000 1500];
 p.analysis_type             = {'ICAem'}; %'plain' / 'ICAe' / 'ICAm' / 'ICAem' 
 p.bsl                       = [-.75 -.25]; 
 p.reref                     = 'yes';
@@ -23,9 +23,9 @@ p.cfgTFR.taper              = 'hanning'
 p.cfgTFR.output             = 'pow';	
 p.cfgTFR.foi                = 4:1:35;	
 p.cfgTFR.t_ftimwin          = .5*ones(1,length(p.cfgTFR.foi))
-p.cfgTFR.toi                = (-p.times_tflock(1):20:p.times_tflock(2))/1000;	
+p.cfgTFR.toi                = (-p.times_tflock(1):50:p.times_tflock(2))/1000;	
 
-tk                          = 4; % subject number
+tk                          = 2; % subject number
 
 if ismac    
     cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
@@ -65,7 +65,7 @@ save([cfg_eeg.analysisfolder cfg_eeg.analysisname '/tfr/' cfg_eeg.sujid '_tfr_st
 %%
 % Topoplots by frequency band
 bands = [10 15;16 21;22 27];
-plot_times  = [-.5 1.9 .1];
+plot_times  = [-.5 1.2 .1];
 for b = 1:size(bands,1)
  
     band   = bands(b,:);
@@ -103,25 +103,25 @@ end
 %%
 % Locked to stimulus, mirrored channels
 % for at = 1:length(p.analysis_type)
-at  = 1;
+at                  = 1;
 p.cfgTFR.keeptrials = 'yes';
+mirindx             = mirrindex(TFRallt_LU.(p.analysis_type{1}).label,[cfg_eeg.expfolder '/channels/mirror_chans']); 
+
 [TFRallt_LU] = getTFRsfromtrl({cfg_eeg},{trls.trlLU},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
+TFRallt_LU.(p.analysis_type{at}) = TFRallt_LU.(p.analysis_type{at}).powspctrm(:,mirindx,:,:);
 [TFRallt_RU] = getTFRsfromtrl({cfg_eeg},{trls.trlRU},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 [TFRallt_LC] = getTFRsfromtrl({cfg_eeg},{trls.trlLC},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
+TFRallt_LC.(p.analysis_type{at}) = TFRallt_LC.(p.analysis_type{at}).powspctrm(:,mirindx,:,:);
 [TFRallt_RC] = getTFRsfromtrl({cfg_eeg},{trls.trlRC},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 
-mirindx         = mirrindex(TFRallt_LU.(p.analysis_type{1}).label,[cfg_eeg.expfolder '/channels/mirror_chans']); 
-   
-TFRallt_U    = TFRallt_RU;
-TFRallt_U.(p.analysis_type{at}).powspctrm = cat(1,TFRallt_U.(p.analysis_type{at}).powspctrm,TFRallt_LU.(p.analysis_type{at}).powspctrm(:,mirindx,:,:));    
-TFRallt_U.(p.analysis_type{at}).cumtapcnt = cat(1,TFRallt_U.(p.analysis_type{at}).cumtapcnt,TFRallt_LU.(p.analysis_type{at}).cumtapcnt);    
-
-TFRallt_C    = TFRallt_RC;
-TFRallt_C.(p.analysis_type{at}).powspctrm = cat(1,TFRallt_C.(p.analysis_type{at}).powspctrm,TFRallt_LC.(p.analysis_type{at}).powspctrm(:,mirindx,:,:));    
-TFRallt_C.(p.analysis_type{at}).cumtapcnt = cat(1,TFRallt_C.(p.analysis_type{at}).cumtapcnt,TFRallt_LC.(p.analysis_type{at}).cumtapcnt);    
+cfgs = [];
+cfgs.parameter = 'powspctrm';
+TFRallt_U    = ft_appendfreq(cfgs, TFRallt_RU.(p.analysis_type{1}),TFRallt_LU.(p.analysis_type{1}));
+TFRallt_C    = ft_appendfreq(cfgs, TFRallt_RC.(p.analysis_type{1}),TFRallt_LC.(p.analysis_type{1}));
 
 TFRallt_U.(p.analysis_type{at})   = ft_freqdescriptives([], TFRallt_U.(p.analysis_type{at}));
 TFRallt_C.(p.analysis_type{at})   = ft_freqdescriptives([], TFRallt_C.(p.analysis_type{at}));
+
 
 % save([cfg_eeg.analysisfolder cfg_eeg.analysisname '/tfr/' cfg_eeg.sujid '_tfr_mirr_stim_' p.analysis_type{at}],'TFRallt_U','TFRallt_C','cfg_eeg','p')
 
@@ -162,7 +162,7 @@ cfgp.interactive    = 'yes';
 % cfgp.ylim           = [0 40];
 % cfgp.xlim           = [-.5 0]
 %  cfgp.zlim           = [.5 1.5]
-data =TFRallt_im.(p.analysis_type{1});
+data =UvsC);
 % data.powspLFRallt_LU.ICAemUvsCa.powspctrm)
 
 figure

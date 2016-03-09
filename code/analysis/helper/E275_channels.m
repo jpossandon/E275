@@ -24,7 +24,7 @@ rotate3d
 
 cfg.elec            = elec;
 cfg.method          = 'distance';
-cfg.neighbourdist   = 50;
+cfg.neighbourdist   = 52;
 cfg.feedback        = 'yes';    
 elec.neighbours     = ft_prepare_neighbours(cfg);
 
