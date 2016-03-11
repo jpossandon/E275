@@ -13,7 +13,7 @@ eyedata.events.angle    = data.angle*pi/180;
 subjects                = unique(eyedata.events.subject);
 
 %%
-subjects = [4];
+subjects = [1:4];
 cross               = [0 0 0 1 1 1];  % (no cross-no stim / no cross/left / no cross/right / no cross/both 
 stimside            = [0 1 2 0 3 4];  %    cross-no stim  /  cross/left   /  cross/right   / cross/both)
  saclat              = cell(length(subjects),8);
@@ -150,7 +150,18 @@ for s = 1:length(subjects)
     clear XY auxdata XY_reprog auxdata_reprog XY_eff
     save([path 'analysis/model_late'],'datac','datac_eff','saclat','fixlat','fixelap','datac_reprog','subjects')
 end
-%figure,plot(mean(cat(3,squeeze(datac_eff(1).B(1,:,:))',squeeze(datac_eff(2).B(1,:,:))',squeeze(datac_eff(3).B(1,:,:))'),3))
+
+%%
+cmap = colormap('lines');
+allb = squeeze([datac_eff.B]);
+figure,
+hold on
+for e = 1:5
+plot(allb(e:5:end,:)','Color',cmap(e,:))
+h(e) = plot(median(allb(e:5:end,:))','Color',cmap(e,:),'LineWidt',3);
+end
+legend(h,{'constant','LR','Cross','LRxCross','PosCov'})
+ylim([-200 200])
 %%
 %2nd level
 % clear 

@@ -4,8 +4,13 @@
 suj             = 4;
 eegfilename     = sprintf('s%02d',suj);
 suj             = sprintf('s%02d',suj);
-cfg             = eeg_etParams_E275('sujid',suj);
 
+if ismac    
+    cfg             = eeg_etParams_E275('sujid',suj,'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
+else
+    cfg             = eeg_etParams_E275('sujid',suj);
+end
+    
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % clean eye correction from this specific file
@@ -74,7 +79,12 @@ expica(cfg)
 % the second sweep is over data clean from eye-movement compontent and muscle artifact components, we can
 % use narrower thresholds here, we check visually that everything is ok and then we run ICA again
 clear cfg
-cfg             = eeg_etParams_E275('sujid',suj);
+if ismac    
+    cfg             = eeg_etParams_E275('sujid',suj,'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
+else
+    cfg             = eeg_etParams_E275('sujid',suj);
+end
+
 cfg             = eeg_etParams_E275(cfg,...
                                    'task_id','fv_touch',...
                                    'filename',eegfilename,...
@@ -133,9 +143,9 @@ load([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename 'pre'],
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','-append') % TODO: info about the cleaning parameters
 
 %%
- cfgvis             = eeg_etParams_E275(cfg,...
-                                       'remove_eye',0,...
-                                       'remove_m',1,'raw',1); 
+ %cfgvis             = eeg_etParams_E275(cfg,...
+  %                                     'remove_eye',0,...
+   %                                    'remove_m',1,'raw',1); 
 % visual_clean(cfgvis)
 %% 
 % run second definitive ICA
@@ -144,7 +154,12 @@ save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.cle
 %%
 % and we do the cleaning one more time with the final ICA weights
 clear cfg
-cfg             = eeg_etParams_E275('sujid',suj);
+if ismac    
+    cfg             = eeg_etParams_E275('sujid',suj,'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
+else
+    cfg             = eeg_etParams_E275('sujid',suj);
+end
+
 cfg             = eeg_etParams_E275(cfg,...
                                    'task_id','fv_touch',...
                                    'filename',eegfilename,...
