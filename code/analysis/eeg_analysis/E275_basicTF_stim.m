@@ -25,7 +25,7 @@ p.cfgTFR.foi                = 4:2:35;
 p.cfgTFR.t_ftimwin          = .512*ones(1,length(p.cfgTFR.foi))
 p.cfgTFR.toi                = (-p.times_tflock(1):50:p.times_tflock(2))/1000;	
 
-tk                          = 1; % subject number
+tk                          = 4; % subject number
 
 if ismac    
     cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
@@ -76,7 +76,7 @@ cfgr.baselinetype   = 'db';
 [freq2]             = ft_freqbaseline(cfgr, TFRallt_R.(p.analysis_type{at}));
     
 load(cfg_eeg.chanfile)
-stat = freqpermBT(freq1,freq2,elec)
+statLR = freqpermBT(freq1,freq2,elec)
 
 %%
 mirindx             = mirrindex(TFRallt_LU.(p.analysis_type{1}).label,[cfg_eeg.expfolder '/channels/mirror_chans']); 
@@ -85,23 +85,23 @@ TFRallt_LCmirr.(p.analysis_type{at}) = TFRallt_LC.(p.analysis_type{at}).powspctr
 
 cfgs = [];
 cfgs.parameter = 'powspctrm';
-TFRallt_U    = ft_appendfreq(cfgs, TFRallt_RU.(p.analysis_type{1}),TFRallt_LU.(p.analysis_type{1}));
-TFRallt_C    = ft_appendfreq(cfgs, TFRallt_RC.(p.analysis_type{1}),TFRallt_LC.(p.analysis_type{1}));
+TFRallt_U    = ft_appendfreq(cfgs, TFRallt_RU.(p.analysis_type{1}),TFRallt_LUmirr.(p.analysis_type{1})); % ERASEME: there was an error here apeenof TFRallt_RU with TFRallt_LU instead of TFRallt_LUmirr
+TFRallt_C    = ft_appendfreq(cfgs, TFRallt_RC.(p.analysis_type{1}),TFRallt_LCmirr.(p.analysis_type{1})); %SAME
 
 [freq1]             = ft_freqbaseline(cfgr,TFRallt_U);
 [freq2]             = ft_freqbaseline(cfgr, TFRallt_C);
 
 load(cfg_eeg.chanfile)
-stat = freqpermBT(freq1,freq2,elec)
+statUC = freqpermBT(freq1,freq2,elec)
 %%
-freq1   = ft_freqdescriptives([], freq1);
-freq2   = ft_freqdescriptives([], freq2);
+freq1av   = ft_freqdescriptives([], freq1);
+freq2av   = ft_freqdescriptives([], freq2);
 
 cfgs            = [];
 cfgs.parameter  = 'powspctrm';
 cfgs.operation  = 'subtract';
-difffreq       = ft_math(cfgs,freq1,freq2);
-difffreq.mask   = stat.mask;
+difffreq       = ft_math(cfgs,freq1av,freq2av);
+difffreq.mask   = statUC.mask;
 %%
 load(cfg_eeg.chanfile)
 cfgp            = [];
@@ -115,8 +115,8 @@ cfgp.interactive    = 'yes';
 % cfgp.ylim           = [0 40];
 % cfgp.xlim           = [-.5 0]
 %   cfgp.zlim           = [-4 4]
-   cfgp.maskparameter = 'mask';
-     cfgp.maskalpha = .3
+    cfgp.maskparameter = 'mask';
+      cfgp.maskalpha = .3
 data = difffreq;
 
 figure
