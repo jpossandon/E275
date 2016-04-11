@@ -64,7 +64,7 @@ win.t_perblock              = 15;
 win.calib_every             = 2; 
 
 % Audio, white noise parameters
-win.wn_vol                  = .2;                                           % (CHANGE?) adjust to subject comfort
+win.wn_vol                  = 1;                                           % (CHANGE?) adjust to subject comfort
 
 % Device input during the experiment
 win.in_dev                  = 1;                                            % (1) - keyboard  (2) - mouse  (3) - pedal (?)    
@@ -130,30 +130,30 @@ KbName('UnifyKeyNames');                                                    % re
 % SERIAL PORT SETTING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if ismac                                                                    % for debugging        
-    display('Skipping serial port settings. Only for testing the code')
-else
-    device                  = '/dev/ttyS0';                                 % /dev/ttyS0 is the default linux serial port (file)
-    obj                     = serial(device,'BaudRate',115200,...           % serial port specs, this is D/P/S = 8/N/1 which is the standars
-                                'Parity','none',...
-                                'StopBits',1,...
-                                'FlowControl','none'); 
-    try                                                                     % try to open the serial port 
-        if strcmpi(obj.Status, 'closed')
-            fopen(obj);
-        end
-    catch
-        error('MATLAB:serial:fwrite:openserialfailed', lasterr);
-        fclose(obj);
-    end
-    fprintf('done');
-    fprintf('\nwriting to serial port...');
-    ok = E275_define_tact_states(obj, win.on_time, win.cycle_time);         % E275_define_tact_states defines the codes to control the stimulation box via the parallel port:
-    if ok ~= 1                                                              % It should be (1) left stimulator; (2) right stimulator; (3) both; (10) turn-off
-        error('\n failed writing stimulus codes to serial port!\n');
-    end
-    fprintf('done');
-end
+% if ismac                                                                    % for debugging        
+%     display('Skipping serial port settings. Only for testing the code')
+% else
+%     device                  = '/dev/ttyS0';                                 % /dev/ttyS0 is the default linux serial port (file)
+%     obj                     = serial(device,'BaudRate',115200,...           % serial port specs, this is D/P/S = 8/N/1 which is the standars
+%                                 'Parity','none',...
+%                                 'StopBits',1,...
+%                                 'FlowControl','none'); 
+%     try                                                                     % try to open the serial port 
+%         if strcmpi(obj.Status, 'closed')
+%             fopen(obj);
+%         end
+%     catch
+%         error('MATLAB:serial:fwrite:openserialfailed', lasterr);
+%         fclose(obj);
+%     end
+%     fprintf('done');
+%     fprintf('\nwriting to serial port...');
+%     ok = E275_define_tact_states(obj, win.on_time, win.cycle_time);         % E275_define_tact_states defines the codes to control the stimulation box via the parallel port:
+%     if ok ~= 1                                                              % It should be (1) left stimulator; (2) right stimulator; (3) both; (10) turn-off
+%         error('\n failed writing stimulus codes to serial port!\n');
+%     end
+%     fprintf('done');
+% end
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,8 +162,9 @@ end
 
 freq                        = 48000;                                        % noise frequency in Hz
 dur                         = 15;                                           % noise duration in seconds
-wavedata                    = rand(1,freq*dur)*2-1;                         % the noise
-wavedata                    = [wavedata ; wavedata];                        % double for stereo
+wavedata1                   = rand(1,freq*dur)*2-1;                         % the noise
+wavedata2                   = sin(2.*pi.*win.tact_freq.*[0:1/freq:dur-1/freq]);      % the stimulus
+wavedata                    = [wavedata1 ; wavedata2];     
 nrchannels                  = 2;                                            % ditto
 
 InitializePsychSound;                                                       % Perform basic initialization of the sound driver:
@@ -253,13 +254,15 @@ if win.stim_test
 
     DrawFormattedText(win.hndl,txt3,'center','center',255,55);                  % TEST LEFT STIMULATOR (three times)
     Screen('Flip', win.hndl);
+    t1              = PsychPortAudio('Start', pahandle, 0, 0, 0);               % Start the sounds
+
     WaitSecs(1);
     for e=1:3
         Eyelink('command', '!*write_ioport 0x378 0');                  
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 1');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);                                                 % for the specified duration
-        Eyelink('command', '!*write_ioport 0x378 15');                          % stop stimulation
+        Eyelink('command', '!*write_ioport 0x378 0');                          % stop stimulation
         WaitSecs(win.stim_dur);
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
@@ -276,7 +279,7 @@ if win.stim_test
         WaitSecs(1+rand(1));      
         Eyelink('command', '!*write_ioport 0x378 2');                           % start stimulation by sending a signal through the parallel port (a number that was set by E275_define_tact_states)
         WaitSecs(win.stim_dur);       
-        Eyelink('command', '!*write_ioport 0x378 15');                          % stop stimulation
+        Eyelink('command', '!*write_ioport 0x378 0');                          % stop stimulation
         WaitSecs(win.stim_dur);
     end
     if win.in_dev == 1                                                          % Waiting for input according to decided device to continue
@@ -291,9 +294,9 @@ if win.stim_test
     for e=1:3
         Eyelink('command', '!*write_ioport 0x378 0');
         WaitSecs(1+rand(1));      
-        Eyelink('command', '!*write_ioport 0x378 5');                    
+        Eyelink('command', '!*write_ioport 0x378 3');                    
         WaitSecs(win.stim_dur);       
-        Eyelink('command', '!*write_ioport 0x378 15');    
+        Eyelink('command', '!*write_ioport 0x378 0');    
         WaitSecs(win.stim_dur);
     end
     Eyelink('command', '!*write_ioport 0x378 0');
@@ -302,7 +305,7 @@ if win.stim_test
     elseif win.in_dev == 2
         [clicks,x,y,whichButton] = GetClicks(win.hndl,0);                       % mouse clik
     end
-
+PsychPortAudio('Stop', pahandle);
     fprintf('\nTest ready!');
 else
     fprintf('\nSkipping stimulators Test.\n Only during experiment debugging');
@@ -468,10 +471,10 @@ for nT = 1:nTrials                                                          % lo
             Eyelink('command', '!*write_ioport 0x378 %d',stim);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
             WaitSecs(win.stim_dur);       
           elseif win.blockcond(nT)==1
-            Eyelink('command', '!*write_ioport 0x378 %d',stim+2);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
+            Eyelink('command', '!*write_ioport 0x378 %d',stim+4);               % start stimulation by sending a signal through the parallel port (a number that was set by js_E174_define_tact_states)
             WaitSecs(win.stim_dur);       
           end
-          Eyelink('command', '!*write_ioport 0x378 %d',15);                 % stop stimulation
+          Eyelink('command', '!*write_ioport 0x378 %d',0);                 % stop stimulation
           last_stim = GetSecs;
           WaitSecs(0.03);
           stim_idx = stim_idx+1;

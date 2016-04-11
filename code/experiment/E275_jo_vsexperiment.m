@@ -78,7 +78,7 @@ ClockRandSeed();                                                            % th
 
 [IsConnected, IsDummy] = EyelinkInit(win.DoDummyMode);                      % open the link with the eyetracker
 assert(IsConnected==1, 'Failed to initialize EyeLink!')
- 
+Eyelink('command', '!*write_ioport 0x378 0');                               % set lpt to 0
 % ListenChar(2)                                                             % disable key listening by MATLAB windows(CTRL+C overridable)
 
 prevVerbos = Screen('Preference','Verbosity', 2);                           % this two lines it to set how much we want the PTB to output in the command and display window 
@@ -201,6 +201,8 @@ if win.stim_test
 
     DrawFormattedText(win.hndl,txt3,'center','center',255,55);                  % TEST LEFT STIMULATOR (three times)
     Screen('Flip', win.hndl);
+    t1              = PsychPortAudio('Start', pahandle, 0, 0, 0);               % Start the sounds
+
     WaitSecs(1);
     for e=1:3
         Eyelink('command', '!*write_ioport 0x378 0');                  
@@ -250,7 +252,7 @@ if win.stim_test
     elseif win.in_dev == 2
         [clicks,x,y,whichButton] = GetClicks(win.hndl,0);                       % mouse clik
     end
-
+PsychPortAudio('Stop', pahandle);
     fprintf('\nTest ready!');
 else
     fprintf('\nSkipping stimulators Test.\n Only during experiment debugging');
