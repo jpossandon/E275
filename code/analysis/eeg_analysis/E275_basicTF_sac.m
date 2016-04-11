@@ -7,22 +7,27 @@
 %%
 % TFR
 % sge               = str2num(getenv('SGE_TASK_ID'));
-
+clear
 % Analysis parameters
-p.times_tflock              = [1500 1000];
+p.times_tflock              = [1000 1000];
 p.analysis_type             = {'ICAem'}; %'plain' / 'ICAe' / 'ICAm' / 'ICAem' 
-p.bsl                       = [-1.5 -1]; 
+p.bsl                       = [-1 -.5]; 
 p.reref                     = 'yes';
 p.keep                      = 'no';
 p.collim                    = [0 2];
 p.cfgTFR.channel            = 'all';	
 p.cfgTFR.keeptrials         = 'no';	                
 p.cfgTFR.method             = 'mtmconvol';
-p.cfgTFR.taper              = 'hanning'
+% p.cfgTFR.taper              = 'hanning'
 % p.cfgTFR.width              = 5; 
+p.cfgTFR.pad                = 3;
 p.cfgTFR.output             = 'pow';	
-p.cfgTFR.foi                = 4:1:35;	
-p.cfgTFR.t_ftimwin          = .5*ones(1,length(p.cfgTFR.foi));
+p.cfgTFR.foi                = 4:2:110;	
+
+p.cfgTFR.t_ftimwin          = 4./p.cfgTFR.foi;
+p.cfgTFR.tapsmofrq          = 0.5*p.cfgTFR.foi;
+
+% p.cfgTFR.t_ftimwin          = .5*ones(1,length(p.cfgTFR.foi));
 p.cfgTFR.toi                = (-p.times_tflock(1):20:p.times_tflock(2))/1000;	
 
 tk                          = 2; % subject number
@@ -55,7 +60,7 @@ for td = 1:4
     trlangles                      = [];
     trlendxpos                  = [];
     for t = events_stim.time
-        [trl,events]            = define_event(cfg_eeg,eyedata,2,{'&start',sprintf('>%d',t+100);'&start',sprintf('<%d',t+1500)},...
+        [trl,events]            = define_event(cfg_eeg,eyedata,2,{'&start',sprintf('>%d',t+100);'&start',sprintf('<%d',t+500)},...
             p.times_tflock,{-2,2,'start',sprintf('<%d',t)});%{-2,2,'start',sprintf('<%d',t)}{-1,1,'dur','>100'}
         if ~isempty(trl)
             trlsac              = [trlsac;trl];
@@ -68,28 +73,49 @@ for td = 1:4
     eval(['sacpar.lat_' stimconds{td} ' = trlsaclat;'])
     eval(['sacpar.ang_' stimconds{td} ' = trlangles;'])
     eval(['sacpar.endposx_' stimconds{td} ' = trlendxpos;'])
- end
+end
+ [trls.trl_sacR,events]            = define_event(cfg_eeg,eyedata,2,{'&angle','<45';'&angle','>-45';'dur','>15';'amp','>1'},p.times_tflock)
+ [trls.trl_sacL,events]            = define_event(cfg_eeg,eyedata,2,{'|angle','>45';'|angle','<-45';'dur','>15';'amp','>1'},p.times_tflock)
 %%
-
+at=1
 [TFRallt_LUsac] = getTFRsfromtrl({cfg_eeg},{trls.trl_LUsac},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 [TFRallt_LCsac] = getTFRsfromtrl({cfg_eeg},{trls.trl_LCsac},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 [TFRallt_RUsac] = getTFRsfromtrl({cfg_eeg},{trls.trl_RUsac},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 [TFRallt_RCsac] = getTFRsfromtrl({cfg_eeg},{trls.trl_RCsac},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
+[TFRallt_Lsac] = getTFRsfromtrl({cfg_eeg},{trls.trl_sacL},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
+[TFRallt_Rsac] = getTFRsfromtrl({cfg_eeg},{trls.trl_sacR},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
+
+%%
+cfgr                = [];
+cfgr.baseline       = p.bsl;
+cfgr.baselinetype   = 'db';
+[freq1]             = ft_freqbaseline(cfgr, TFRallt_Lsac.(p.analysis_type{at}));
+[freq2]             = ft_freqbaseline(cfgr, TFRallt_Rsac.(p.analysis_type{at}));
+
+cfgs            = [];
+cfgs.parameter  = 'powspctrm';
+cfgs.operation  = 'subtract';
+difffreq        = ft_math(cfgs,freq1,freq2);
+
+
 %%
 % Fieldtrip fast plotting
-%% 
+ 
 load(cfg_eeg.chanfile)
 cfgp            = [];
 cfgp.showlabels = 'no'; 
 cfgp.fontsize   = 12; 
 cfgp.elec       = elec;
 cfgp.interactive    = 'yes';
-cfgp.baseline       = p.bsl ;
-cfgp.baselinetype   = 'relative';
+% cfgp.baseline       = p.bsl ;
+% cfgp.baselinetype   = 'relative';
+% cfgp.trials     = 51:70
 % cfgp.ylim           = [0 40];
 % cfgp.xlim           = [-.5 0]
-cfgp.zlim           = [.5 1.5]
-data =TFRallt_LCsac.(p.analysis_type{at});
+% cfgp.zlim           = [.7 1.2]
+%  cfgp.zlim           = [-.5 .5]
+  data =TFRallt_Lsac.(p.analysis_type{at});
+%  data = difffreq
 % data.powspLFRallt_LU.ICAemUvsCa.powspctrm)
 
 figure

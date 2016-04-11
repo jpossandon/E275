@@ -1,17 +1,17 @@
 p.subj                  = p.subj;
-p.times_imlock          = [500 600];
+p.times_saclock          = [1000 100];
 % p.minamp              = 0;
 % p.prev                = {-1,1,'origstart','>0'};
 p.npermute              = 250;
-p.data                  = 'stim';
+p.data                  = 'sac';
 p.rref                  = 'yes';
 p.keep                  = 'no';
 p.plot                  = 1;
 p.analysis_type         = {'ICAem'};
 
 % p.sac                 = 1;
-p.bsl                   = [-.2 0];
-p.interval              = [-.15 .6 .025]; % [start end step]
+p.bsl                   = [-.65 -.45];
+p.interval              = [-.65 .1 .025]; % [start end step]
 p.colorlim              = [-10 10];
 
 p.model                 = 1;

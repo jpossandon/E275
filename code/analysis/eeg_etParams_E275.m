@@ -5,7 +5,8 @@ if ~isstruct(varargin{1})
     cfg.expname                 = 'E275';                         % used for eeg population stats and meta-analysis across experiments, keep the same name for all analysis done with the same experimental data
 
     % paths
-    cfg.expfolder               = '/Users/jossando/trabajo/E275/';
+%     cfg.expfolder               = '/Users/jossando/trabajo/E275/';
+    cfg.expfolder               = '/net/store/nbp/projects/EEG/E275/'    
     cfg.edfreadpath             = '/net/store/users/jossando/edfread/build/linux64/';
    
     % triggers and trial definition
