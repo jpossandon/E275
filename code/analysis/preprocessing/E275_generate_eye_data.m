@@ -45,7 +45,7 @@ for s = subjects
    % data                = struct_up('data',auxdata,2);
    % stim                = struct_up('stim',stimdata,2);
    % sample              = struct_up('sample',sampledata,2);
-      save(sprintf('%ss%02deye',cfg.EDFfolder,s),'auxdata','stimdata','sampledata','eyedata') 
+      save(sprintf('%ss%02deye',cfg.EDFfolder,s),'eyedata') 
 end
      
 % save('/net/store/nbp/touch/data/alleyedata','data','stim')
