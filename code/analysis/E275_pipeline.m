@@ -3,14 +3,19 @@
 %%
 % Read the eyetracker file
 % b
-oldsubjects             = [1:3];
-addsubjects             = 4;
+oldsubjects             = [1:4];
+addsubjects             = 5;
     
 for s=addsubjects
     eegfilename     = sprintf('s%02d',s);
     suj             = sprintf('s%02d',s);
 
-    cfg             = eeg_etParams_E275('sujid',suj,...%'expfolder','/net/store/nbp/projects/EEG/E275/',...      % to run things in different environments
+    if ismac    
+        cfg             = eeg_etParams_E275('sujid',suj,'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
+    else
+        cfg             = eeg_etParams_E275('sujid',suj);
+    end
+    cfg             = eeg_etParams_E275(cfg,'sujid',suj,...%'expfolder','/net/store/nbp/projects/EEG/E275/',...      % to run things in different environments
                                     'task_id','fv_touch',...
                                     'filename',eegfilename,...
                                     'event',[eegfilename '.vmrk'],...

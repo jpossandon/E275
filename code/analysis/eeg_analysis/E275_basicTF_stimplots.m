@@ -13,19 +13,20 @@ p.times_tflock              = [1000 1500];
 p.analysis_type             = {'ICAem'}; %'plain' / 'ICAe' / 'ICAm' / 'ICAem' 
 p.bsl                       = [-.75 -.25]; 
 p.reref                     = 'yes';
-p.keep                      = 'no';
+p.keep                      = 'yes';
 p.collim                    = [0 2];
 p.cfgTFR.channel            = 'all';	
 p.cfgTFR.keeptrials         = 'no';	                
 p.cfgTFR.method             = 'mtmconvol';
 p.cfgTFR.taper              = 'hanning'
 % p.cfgTFR.width              = 5; 
-p.cfgTFR.output             = 'pow';	
+p.cfgTFR.output             = 'pow';
+p.cfgTFR.pad                = 3;
 p.cfgTFR.foi                = 4:1:35;	
 p.cfgTFR.t_ftimwin          = .5*ones(1,length(p.cfgTFR.foi))
 p.cfgTFR.toi                = (-p.times_tflock(1):50:p.times_tflock(2))/1000;	
 
-tk                          = 2; % subject number
+tk                          = 1; % subject number
 
 if ismac    
     cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
@@ -60,7 +61,7 @@ mkdir([cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/T
 [TFRallt_LC] = getTFRsfromtrl({cfg_eeg},{trls.trlLC},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 [TFRallt_RC] = getTFRsfromtrl({cfg_eeg},{trls.trlRC},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 [TFRallt_im] = getTFRsfromtrl({cfg_eeg},{trls.image},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
-save([cfg_eeg.analysisfolder cfg_eeg.analysisname '/tfr/' cfg_eeg.sujid '_tfr_stim_' p.analysis_type{at}],'TFRallt_LU','TFRallt_LC','TFRallt_RU','TFRallt_RC','TFRallt_im','cfg_eeg','p')
+% save([cfg_eeg.analysisfolder cfg_eeg.analysisname '/tfr/' cfg_eeg.sujid '_tfr_stim_' p.analysis_type{at}],'TFRallt_LU','TFRallt_LC','TFRallt_RU','TFRallt_RC','TFRallt_im','cfg_eeg','p')
 
 %%
 % Topoplots by frequency band
@@ -78,7 +79,7 @@ for b = 1:size(bands,1)
     saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/TFR_' p.analysis_type{at} '/' cfg_eeg.sujid sprintf('_StimRU_%dto%dHz_',band(1),band(2)) p.analysis_type{at}],'fig')
     fh = plot_topos_TFR(cfg_eeg,TFRallt_RC.(p.analysis_type{at}),plot_times,band,p.bsl,p.collim,['Stim RC ' (p.analysis_type{at}) sprintf(' %d-%d Hz',band(1),band(2))]);
     saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/TFR_' p.analysis_type{at} '/' cfg_eeg.sujid sprintf('_StimRC_%dto%dHz_',band(1),band(2)) p.analysis_type{at}],'fig')
-
+    
 
 % and the diferrence
     cfgr                = [];
@@ -105,27 +106,31 @@ end
 % for at = 1:length(p.analysis_type)
 at                  = 1;
 p.cfgTFR.keeptrials = 'yes';
-mirindx             = mirrindex(TFRallt_LU.(p.analysis_type{1}).label,[cfg_eeg.expfolder '/channels/mirror_chans']); 
 
 [TFRallt_LU] = getTFRsfromtrl({cfg_eeg},{trls.trlLU},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
-TFRallt_LU.(p.analysis_type{at}) = TFRallt_LU.(p.analysis_type{at}).powspctrm(:,mirindx,:,:);
+mirindx             = mirrindex(TFRallt_LU.(p.analysis_type{1}).label,[cfg_eeg.expfolder '/channels/mirror_chans']); 
+
+TFRallt_LU.(p.analysis_type{at}).powspctrm = TFRallt_LU.(p.analysis_type{at}).powspctrm(:,mirindx,:,:);
 [TFRallt_RU] = getTFRsfromtrl({cfg_eeg},{trls.trlRU},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 [TFRallt_LC] = getTFRsfromtrl({cfg_eeg},{trls.trlLC},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
-TFRallt_LC.(p.analysis_type{at}) = TFRallt_LC.(p.analysis_type{at}).powspctrm(:,mirindx,:,:);
+TFRallt_LC.(p.analysis_type{at}).powspctrm = TFRallt_LC.(p.analysis_type{at}).powspctrm(:,mirindx,:,:);
 [TFRallt_RC] = getTFRsfromtrl({cfg_eeg},{trls.trlRC},p.bsl,p.reref,p.analysis_type{at},p.keep,p.cfgTFR);
 
 cfgs = [];
 cfgs.parameter = 'powspctrm';
-TFRallt_U    = ft_appendfreq(cfgs, TFRallt_RU.(p.analysis_type{1}),TFRallt_LU.(p.analysis_type{1}));
-TFRallt_C    = ft_appendfreq(cfgs, TFRallt_RC.(p.analysis_type{1}),TFRallt_LC.(p.analysis_type{1}));
+TFRallt_U.(p.analysis_type{at})    = ft_appendfreq(cfgs, TFRallt_RU.(p.analysis_type{1}),TFRallt_LU.(p.analysis_type{ 1}));
+TFRallt_C.(p.analysis_type{at})    = ft_appendfreq(cfgs, TFRallt_RC.(p.analysis_type{1}),TFRallt_LC.(p.analysis_type{1}));
 
 TFRallt_U.(p.analysis_type{at})   = ft_freqdescriptives([], TFRallt_U.(p.analysis_type{at}));
 TFRallt_C.(p.analysis_type{at})   = ft_freqdescriptives([], TFRallt_C.(p.analysis_type{at}));
-
+TFRallt_im.(p.analysis_type{at})   = ft_freqdescriptives([], TFRallt_im.(p.analysis_type{at}));
 
 % save([cfg_eeg.analysisfolder cfg_eeg.analysisname '/tfr/' cfg_eeg.sujid '_tfr_mirr_stim_' p.analysis_type{at}],'TFRallt_U','TFRallt_C','cfg_eeg','p')
 
 %%
+bands = [10 15;16 21;22 27];
+plot_times  = [-.25 1 .05];
+
 for b = 1:size(bands,1)
  
     band   = bands(b,:);
@@ -134,6 +139,8 @@ for b = 1:size(bands,1)
     saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/TFR_' p.analysis_type{at} '/' cfg_eeg.sujid sprintf('_StimU_%dto%dHz_',band(1),band(2)) p.analysis_type{at}],'fig')
     fh = plot_topos_TFR(cfg_eeg,TFRallt_C.(p.analysis_type{at}),plot_times,band,p.bsl,p.collim,['Stim C ' (p.analysis_type{at}) sprintf(' %d-%d Hz',band(1),band(2))]);
     saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/TFR_' p.analysis_type{at} '/' cfg_eeg.sujid sprintf('_StimC_%dto%dHz_',band(1),band(2)) p.analysis_type{at}],'fig')
+    fh = plot_topos_TFR(cfg_eeg,TFRallt_im.(p.analysis_type{at}),plot_times,band,p.bsl,p.collim,['Stim im ' (p.analysis_type{at}) sprintf(' %d-%d Hz',band(1),band(2))]);
+    saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/TFR_' p.analysis_type{at} '/' cfg_eeg.sujid sprintf('_Stimim_%dto%dHz_',band(1),band(2)) p.analysis_type{at}],'fig')
 
     cfgr                = [];
     cfgr.baseline       = p.bsl;
@@ -162,7 +169,7 @@ cfgp.interactive    = 'yes';
 % cfgp.ylim           = [0 40];
 % cfgp.xlim           = [-.5 0]
 %  cfgp.zlim           = [.5 1.5]
-data =UvsC);
+data =TFRallt_im.ICAem
 % data.powspLFRallt_LU.ICAemUvsCa.powspctrm)
 
 figure
