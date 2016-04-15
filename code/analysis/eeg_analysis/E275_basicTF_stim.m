@@ -137,13 +137,14 @@ for ff=1:length(fTFR)
     eval(str_GA)
 end
 %%
-[freq1]             = ft_freqbaseline(cfgr,TFR.U);
-[freq2]             = ft_freqbaseline(cfgr, TFR.C);
+[freq1]             = ft_freqbaseline(cfgr,TFR_U.ICAem);
+[freq2]             = ft_freqbaseline(cfgr, TFR_C.ICAem);
 
+%%
 load(cfg_eeg.chanfile)
 statUC = freqpermBT(freq1,freq2,elec);
 %%
-freq1a;   = ft_freqdescriptives([], freq1);
+freq1av   = ft_freqdescriptives([], freq1);
 freq2av   = ft_freqdescriptives([], freq2);
 
 cfgs            = [];
@@ -159,14 +160,14 @@ cfgp.fontsize   = 12;
 cfgp.elec       = elec;
 cfgp.interactive    = 'yes';
 % cfgp.trials     =4
-%        cfgp.baseline       = p.bsl;
-%        cfgp.baselinetype   = 'db';
+%         cfgp.baseline       = p.bsl;
+%         cfgp.baselinetype   = 'db';
 % cfgp.ylim           = [0 40];
  cfgp.xlim           = [-.75 1.25];
-%      cfgp.zlim           = [-1 1];
+%       cfgp.zlim           = [-1 1];
 %     cfgp.maskparameter = 'mask';
 %       cfgp.maskalpha = .3
-data = GA.C;
+data = GA.IM;
 
 figure,ft_multiplotTFR(cfgp,data)
 

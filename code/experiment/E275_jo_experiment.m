@@ -211,7 +211,7 @@ txt11    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
         'nde ' 252 'berkreuzen. Zum Fortfahren die '  txtdev]);
 
 %these are for debugging
-handstr  = {'Left','Right'};
+handstr  = {'Left','Right','','','Left','Right'};
 crossstr = {'Uncrossed','Crossed'};
         
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -335,7 +335,7 @@ nTrials             = win.test_trials+win.exp_trials;                       % To
 nBlocks             = win.exp_trials./win.t_perblock;                       % # experimental block without counting the first test one
 win.block_start     = [1,zeros(1,win.test_trials-1),...                     % Trials that are block start
                         repmat([1,zeros(1,win.t_perblock-1)],1,nBlocks)];
-if rem(win.s_n,2)                                                           % we balance across subjects (according to their subject number) whether they start the experiment with the hand crossed or uncrossed, again this should not matter that much
+if rem(str2num(win.s_n),2)                                                  % we balance across subjects (according to their subject number) whether they start the experiment with the hand crossed or uncrossed, again this should not matter that much
     win.blockcond   = [zeros(1,win.test_trials),...
         repmat([zeros(1,win.t_perblock),ones(1,win.t_perblock)],1,nBlocks/2)];
 else

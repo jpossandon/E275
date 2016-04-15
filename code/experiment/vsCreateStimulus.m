@@ -1,4 +1,4 @@
-function posVec = vsCreateStimulus(vsPosGrid, scr, winH, draw2EL)
+function posVec = vsCreateStimulus(vsPosGrid, scr, winH, draw2EL,borderH)
 % Create stimulus array for visual search task; E.g. used by vsRunTrials.m.
 %
 % INPUT
@@ -6,6 +6,7 @@ function posVec = vsCreateStimulus(vsPosGrid, scr, winH, draw2EL)
 %       scr - setup_geometry.m's output (+field 'bkgcolor', background color)
 %      winH - Psychtoolbox window handle to draw to
 %   draw2EL - true/false; whether to also draw on EyeLink Host PC
+%   borderH - screen horizontal margin not used in % of the screen (10 - 10% to the left and 10% to the right)
 %
 % Created 11/2012 by Johannes Keyser (jkeyser@uos.de)
 %     Rev 01/2013 jkeyser: +stimuli defined using "scr", +drawing on HostPC
@@ -58,11 +59,12 @@ end
 [grdY, grdX] = size(vsPosGrid);
 % restrict stimulus extent to requested area (in pixels [x y] "resolution")
 stimRes = min([scr.res; win.res]);
+borderH = borderH/100*stimRes(1);
 % evenly distribute positions on grid, with same distances to area borders
-dsX = stimRes(1)/(grdX+1); % one more distance than dots | - o - o - o - |
+dsX = (stimRes(1)-2*borderH)/(grdX+1); % one more distance than dots | - o - o - o - |
 dsY = stimRes(2)/(grdY+1);
 % create symbol positions w.r.t. virtual stimulus area
-[vrtPosX, vrtPosY] = meshgrid(linspace(dsX, stimRes(1)-dsX, grdX),...
+[vrtPosX, vrtPosY] = meshgrid(linspace(dsX+borderH, stimRes(1)-dsX-borderH, grdX),...
                              linspace(dsY, stimRes(2)-dsY, grdY));
 posVec.vrt = [vrtPosX(:) vrtPosY(:)]'; % 2-row vector, for logging
 % add offsets necessary for centered presentation on actual screen

@@ -2,14 +2,14 @@
 % E275
 
 trialdur    = 8;
-halflife    = trialdur/3;
+halflife    = trialdur/2;
 decay       = log(2)./halflife;         %lambda
 mean_life   = 1/decay;
 min_length  = .75;
 display(sprintf('\nCalculating estimates for:\n\n  Trial duration : %4.2f s\n  Half-life      : %4.2f s\n  Lambda         : %4.2f\n  Mean interval  : %4.2f s',trialdur,halflife,decay,mean_life))
 
 
-nsim        = 1000;
+nsim        = 500;
 ntrials     = 390;
 binwidth    = .5;
 tbins       = 0:binwidth:trialdur;
