@@ -1,4 +1,4 @@
-function vsTrials = vsCreateTrials(initDur, Nreps)
+function vsTrials = vsCreateTrials(initDur, Nreps,Ncols)
 % vsTrials = vsCreateTrials() creates randomized trials for visual search.
 % They are used by vsRunTrials.m to draw stimuli and control flow.
 % The fields of vsTrials are declared general enough to only be filled with
@@ -21,8 +21,8 @@ function vsTrials = vsCreateTrials(initDur, Nreps)
 
 if nargin < 1, initDur = 6; end % default is 6 seconds
 if nargin < 2, Nreps = 3; end
-N.grdX = 10; % horizontal amount of (evenly spaced) positions on grid
-N.grdY = 10; %   vertical amount of (evenly spaced) positions on grid
+N.grdX = Ncols; % horizontal amount of (evenly spaced) positions on grid
+N.grdY = Ncols; %   vertical amount of (evenly spaced) positions on grid
 N.reps = Nreps; % number of repetitions of any condition
 N.trls = N.reps*N.grdX*N.grdY; % how many trials will be generated in total
 %%% initialize a strctuct with all the fields a vsTrial should ever need

@@ -117,8 +117,8 @@ if draw2EL, vsShowStimOnHost(), end % NOTE: May change the Eyelink's mode!
         assert(ismember(elemStr, validElems), ...
                ['Valid : ''' validElems{1} ''' or ''' validElems{2}])
         %%% SETTINGS (coming from "def" parameter)
-        DIAM    = scr.pixxdeg.*1;  % "O/Q" diameter (target/distractors)
-        LLEN    = scr.pixxdeg.*.4; % length of line in "Q" (distractors)
+        DIAM    = scr.pixxdeg.*.75;  % "O/Q" diameter (target/distractors)
+        LLEN    = scr.pixxdeg.*.3; % length of line in "Q" (distractors)
         LWIDTH  = 4;   % width of any drawn line %TODO: not for extremes!
         COLOR   = 255; % CLUT index or [r g b a]
         BGCOLOR = [0 0 0 0]; % patch background color, CLUT or [r g b a]

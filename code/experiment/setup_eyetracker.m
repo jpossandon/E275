@@ -264,7 +264,7 @@ cmds(end+1) = EyelinkCmd('calibration_type = HV13');
 % calibration sequencing "YES": auto, "NO": manual. With PD patients: NO!
 cmds(end+1) = EyelinkCmd('enable_automatic_calibration = NO');
 % should the Eyetracker generate its default target placements
-cmds(end+1) = EyelinkCmd('generate_default_targets = YES');
+cmds(end+1) = EyelinkCmd('generate_default_targets = NO');
 % should the calibration/validation points appear in random order?
 cmds(end+1) = EyelinkCmd('randomize_calibration_order = YES');
 cmds(end+1) = EyelinkCmd('randomize_validation_order = YES');
@@ -410,6 +410,8 @@ EyelinkUpdateDefaults(el) % pass changes to the MEX-callback function
 % some manual pixel coordinates for HV13 on a 1920x1080 monitor (x,y pairs)
 % scr_w = 1920;
 % scr_h = 1080;
+ scr_w = win.res(1);
+ scr_h = win.res(2);
 % % left, left-middle, middle, middle-right, right
 % ll = 510;
 % lm = 735;
@@ -423,19 +425,19 @@ EyelinkUpdateDefaults(el) % pass changes to the MEX-callback function
 % cb = 740;
 % bb = 940;
 %%% Bene's (behinger@uos.de) way to calculate HV13 positions:
-% scale = 8;
+ scale = 6;
 % % left, left-middle, middle, middle right, right
-% ll = scr_w/2 - 2*scr_w/scale;
-% lm = scr_w/2 - 1*scr_w/scale;
-% mm = scr_w/2 + 0*scr_w/scale;
-% mr = scr_w/2 + 1*scr_w/scale;
-% rr = scr_w/2 + 2*scr_w/scale;
+ll = scr_w/2 - 2*scr_w/scale;
+lm = scr_w/2 - 1*scr_w/scale;
+mm = scr_w/2 + 0*scr_w/scale;
+mr = scr_w/2 + 1*scr_w/scale;
+rr = scr_w/2 + 2*scr_w/scale;
 % % top, top-center, center, center-bottom, bottom
-% tt = scr_h/2 - 2*scr_h/scale;
-% tc = scr_h/2 - 1*scr_h/scale;
-% cc = scr_h/2 + 0*scr_h/scale;
-% cb = scr_h/2 + 1*scr_h/scale;
-% bb = scr_h/2 + 2*scr_h/scale;
+tt = scr_h/2 - 2*scr_h/scale;
+tc = scr_h/2 - 1*scr_h/scale;
+cc = scr_h/2 + 0*scr_h/scale;
+cb = scr_h/2 + 1*scr_h/scale;
+bb = scr_h/2 + 2*scr_h/scale;
 %
 %%% test plot of calibration/validation targets (just comment-in to run)
 % %% [code-cell start]
@@ -443,22 +445,22 @@ EyelinkUpdateDefaults(el) % pass changes to the MEX-callback function
 %           ll,tt; rr,tt; ll,bb; rr,bb; lm,tc; lm,cb; mr,tc; mr,cb];
 % figure(), ax = axes();
 % scatter(ax, coords(:,1), coords(:,2), 50, 'filled',...
-%         'MarkerFacecolor', repmat(el.calibrationtargetcolour, 1,3)/255)
+%         'MarkerFacecolor', repmat(200, 1,3)/255)
 % set(ax, 'Color', repmat(el.backgroundcolour, 1,3)/255)
 % set(ax, 'YDir', 'reverse')
 % axis image, axis([0 scr_w 0 scr_h])
 % %% [code-cell end]
 %
 %%% calibration coordinates
-% cmds(end+1) = EyelinkCmd( ...
-%                 ['calibration_targets = %d,%d %d,%d %d,%d %d,%d %d,%d'...
-%                  ' %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d'], ...
-%                  mm,cc, mm,tt, mm,bb, ll,cc, rr,cc, ...
-%                  ll,tt, rr,tt, ll,bb, rr,bb, lm,tc, lm,cb, mr,tc, mr,cb);
-%%% validation coordinates 
-% cmds(end+1) = EyelinkCmd( ...
-%                  ['validation_targets = %d,%d %d,%d %d,%d %d,%d %d,%d'...
-%                  ' %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d'], ...
-%                  mm,cc, mm,tt, mm,bb, ll,cc, rr,cc, ...
-%                  ll,tt, rr,tt, ll,bb, rr,bb, lm,tc, lm,cb, mr,tc, mr,cb);
+cmds(end+1) = EyelinkCmd( ...
+                ['calibration_targets = %d,%d %d,%d %d,%d %d,%d %d,%d'...
+                 ' %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d'], ...
+                 mm,cc, mm,tt, mm,bb, ll,cc, rr,cc, ...
+                 ll,tt, rr,tt, ll,bb, rr,bb, lm,tc, lm,cb, mr,tc, mr,cb);
+%% validation coordinates 
+cmds(end+1) = EyelinkCmd( ...
+                 ['validation_targets = %d,%d %d,%d %d,%d %d,%d %d,%d'...
+                 ' %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d %d,%d'], ...
+                 mm,cc, mm,tt, mm,bb, ll,cc, rr,cc, ...
+                 ll,tt, rr,tt, ll,bb, rr,bb, lm,tc, lm,cb, mr,tc, mr,cb);
 end
