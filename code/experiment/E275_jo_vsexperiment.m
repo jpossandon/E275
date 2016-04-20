@@ -11,7 +11,7 @@
 % this is for debugging
 win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
 win.stim_test               = 0;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
-PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
+% PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
 
 % Screen parameters
 win.whichScreen             = 0;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
@@ -24,7 +24,6 @@ win.hght                    = 28.7;                                         %
 win.pixxdeg                 = win.res(1)/(2*180/pi*atan(win.wdth/2/win.Vdst));% 
 win.trial_max_length        = 10;                                           % this is the max length of search,
 win.center_thr              = 3*win.pixxdeg;                                % this is overriden below to set it to the center two columns
-win.ncols                   = 8;
 win.targ_thr                = win.pixxdeg;                                  % this is overriden below accoring to the spacing of the targets
 win.tfix_target             = .5;
 
@@ -36,12 +35,15 @@ win.halflife                = 8/3;                                          % we
 win.stim_lambda             = log(2)./win.halflife;                                 
 
 % Blocks and trials
-win.exp_trials              = 390;
-win.test_trials             = 15;
-win.t_perblock              = 15;
+win.ncols                   = 8;
+win.rep_item                = 6;
+win.exp_trials              = win.ncols*win.ncols*win.rep_item;
+win.test_trials             = 16;
+win.t_perblock              = 16;
+if mod(win.exp_trials,win.t_perblock),error('Number of trials per block do not match with total amount of trials'),end
 win.calib_every             = 2; 
-win.nBlocks                 = win.exp_trials/win.test_trials;
-win.catchp                  =.1;
+win.nBlocks                 = win.exp_trials/win.t_perblock;
+win.catchp                  = .1;
 % Audio, white noise parameters
 win.wn_vol                  = .2;                                           % (CHANGE?) adjust to subject comfort
 
@@ -92,12 +94,7 @@ Screen('Preference', 'SkipSyncTests', 2)                                    % fo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [win.hndl, win.rect]        = Screen('OpenWindow',win.whichScreen,win.bkgcolor);   % starts PTB screen
-% if win.rect(3)~=1280 || win.rect(4)~=960                                    % (!CHANGE!) if resolution is not the correct one the experiment stops
-%     sca
-%     Eyelink('Shutdown');       % closes the link to the eye-tracker
-%     fclose(obj);               % closes the serial port
-%     error('Screen resolution must be 1280x960')
-% end
+
 [win.cntr(1), win.cntr(2)] = WindowCenter(win.hndl);                        % get where is the display screen center
 Screen('BlendFunction',win.hndl, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     % enable alpha blending for smooth drawing
 % HideCursor(win.hndl);                                                       % this to hide the mouse
@@ -155,9 +152,13 @@ txt7     = double(['Beginn des Experiments\n Test Block \n  F' 252 'r den n' 228
             'chsten Block bitte die H' 228 'nde ' 252 'berkreuzen (crossed). \n Zum Fortfahren die ' txtdev]);      
 % txt 9&10 are contingent to the block so they are defined later
 txt10    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-        'nde parallel positionieren. Zum Fortfahren die ' txtdev]);
+        'nde parallel positionieren. Ignore the tactile stimulation. Zum Fortfahren die ' txtdev]);
 txt11    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-        'nde ' 252 'berkreuzen. Zum Fortfahren die '  txtdev]);
+        'nde ' 252 'berkreuzen. Ignore the tactile stimulation. Zum Fortfahren die '  txtdev]);
+txt12    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
+        'nde parallel positionieren. Tactile stimulation indicate the side of the screen where the target is. Zum Fortfahren die ' txtdev]);
+txt13    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
+        'nde ' 252 'berkreuzen. Tactile stimulation indicate the side of the screen where the target is. Zum Fortfahren die '  txtdev]);
 
 %these are for debugging
 handstr  = {'Left','Right','','','Left','Right'};
@@ -290,34 +291,35 @@ end
      1-ismember(sn,[1:4:200,2:4:200])*ones(1,win.exp_trials/2)];            % 2 = test trials, 0 - uninformative, 1 - informative 
 
 nTrials             = win.exp_trials+win.test_trials;
-win.block_start     = zeros(1,nTrials);                                         % (!!TODO: is this anymore necessary?)
+win.block_start     = [[1,zeros(1,win.test_trials-1)],[repmat([1,zeros(1,win.t_perblock-1)],1,win.nBlocks)]];                                         % (!!TODO: is this anymore necessary?)
 
 %%% position of the two center column for center threhsold and target threshold
 posVec              = vsCreateStimulus(win.vsTrials(1).stimulus.posGrid, ...
                     win, win.hndl, true,10);
 Screen('FillRect', win.hndl, win.bkgcolor);  
 
-win.center_thr = ceil(max(unique(diff(unique(posVec.scr(1,:)))))+...
+win.center_thr      = ceil(max(unique(diff(unique(posVec.scr(1,:)))))+...
     .5*max((unique(diff(unique(posVec.scr(1,:)))))));        
 win.targ_thr        = [ceil(.75*(max(unique(diff(unique(posVec.scr(1,:))))))) ...
     ceil(.75*(max(unique(diff(unique(posVec.scr(2,:)))))))];
+
+win.result.perf     = zeros(1,nTrials);
+win.result.rT       = zeros(1,nTrials);
+            
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % THE ACTUAL EXPERIMENT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 b                   = 0;                                                    % block flag
-for nT = 16:nTrials                                                          % loop throught the experiment trials
+for nT = 1:nTrials                                                          % loop throught the experiment trials
     
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % BLOCK START
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    if  win.block_start(nT) == 1                                                % if it is a trial that starts a block   
-        if s.Active                                                         % if the white noise was on, we sopt it here
-            PsychPortAudio('Stop', pahandle)
-        end
-        
+    if  win.block_start(nT) == 1                                            % if it is a trial that starts a block   
+   
         % Hand position block intructions
         if nT ==1 && win.blockcond(nT) == 0                                  % practice trials and uncrossed
             draw_instructions_and_wait(txt6,win.bkgcolor,win.hndl,win.in_dev,1)
@@ -337,10 +339,14 @@ for nT = 16:nTrials                                                          % l
             EyelinkDoTrackerSetup(win.el);
         end
         
-        if win.blockcond(nT) == 0
+        if win.blockcond(nT) == 0 && win.blockcue(nT)==0
             DrawFormattedText(win.hndl, txt10,'center','center',255,55);
-        elseif win.blockcond(nT) == 1
+        elseif win.blockcond(nT) == 1 && win.blockcue(nT)==0
             DrawFormattedText(win.hndl,txt11,'center','center',255,55);
+        elseif win.blockcond(nT) == 0 && win.blockcue(nT)==1
+            DrawFormattedText(win.hndl, txt12,'center','center',255,55);
+        elseif win.blockcond(nT) == 1 && win.blockcue(nT)==1
+            DrawFormattedText(win.hndl,txt13,'center','center',255,55);
         end
         Screen('Flip', win.hndl);
         if win.in_dev == 1                                                              
@@ -348,47 +354,45 @@ for nT = 16:nTrials                                                          % l
         elseif win.in_dev == 2
             GetClicks(win.hndl,0);                                                      
         end
-                      % starts the white noise, third input is set to 0 so it loops until is sopped
- 
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % TRIALS
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Eyelink('message','TRIALID %d', nT);
-     Eyelink('Command','record_status_message ''Block %d Trial %d''',b,nT);
-     Eyelink('WaitForModeReady', 50);
-   Screen('FillRect', win.hndl, win.bkgcolor);                         % remove what was writte or displayed
+    Eyelink('Command','record_status_message ''Block %d Trial %d''',b,nT);
+    Eyelink('WaitForModeReady', 50);
+    Screen('FillRect', win.hndl, win.bkgcolor);                         % remove what was writte or displayed
     Screen('DrawTexture', win.hndl, fixIndex);                          % drift correction image
     Screen('Flip', win.hndl);
    
-    t1      = PsychPortAudio('Start', pahandle, 0, 0, 0);
-     EyelinkDoDriftCorrect2(win.el,win.res(1)/2,win.res(2)/2,0)          % drift correction 
-      Screen('FillRect', win.hndl, win.bkgcolor);
-       posVec      = vsCreateStimulus(win.vsTrials(nT).stimulus.posGrid, ...
-                    win, win.hndl, true,10);
+    t1          = PsychPortAudio('Start', pahandle, 0, 0, 0);
+    EyelinkDoDriftCorrect2(win.el,win.res(1)/2,win.res(2)/2,0)          % drift correction 
+    Screen('FillRect', win.hndl, win.bkgcolor);
+    posVec      = vsCreateStimulus(win.vsTrials(nT).stimulus.posGrid, ...
+                            win, win.hndl, true,10);
 
-        Eyelink('StartRecording');  
-       Eyelink('WaitForModeReady', 50);      
+    Eyelink('StartRecording');  
+    Eyelink('WaitForModeReady', 50);      
     
-      targetpos   = posVec.scr(:,find(win.vsTrials(nT).stimulus.posGrid))
-     Eyelink('message','METATR block %d',win.blockcond(nT));                 % block condition
-     Eyelink('WaitForModeReady', 50);
-     Eyelink('message','METATR cue %d',win.blockcue(nT));                    % cue condition
-     Eyelink('WaitForModeReady', 50);
-     Eyelink('message','METATR block_start %d',win.block_start(nT));         % if it was the first image in the block
-     Eyelink('WaitForModeReady', 50);
-     Eyelink('message','METATR tpos %d',win.vsTrials(nT).stimulus.tgtIndx);  % which target
+    targetpos   = posVec.scr(:,find(win.vsTrials(nT).stimulus.posGrid));
+    Eyelink('message','METATR block %d',win.blockcond(nT));                 % block condition
+    Eyelink('WaitForModeReady', 50);
+    Eyelink('message','METATR cue %d',win.blockcue(nT));                    % cue condition
+    Eyelink('WaitForModeReady', 50);
+    Eyelink('message','METATR block_start %d',win.block_start(nT));         % if it was the first image in the block
+    Eyelink('WaitForModeReady', 50);
+    Eyelink('message','METATR tpos %d',win.vsTrials(nT).stimulus.tgtIndx);  % which target
 %     
     Screen('Flip', win.hndl);                                               % actual image change, we message it to the eye-tracke and set the timer
-     Eyelink('message','SYNCTIME');                                          % so trial zero time is just after image change
-     Eyelink('command', '!*write_ioport 0x378 %d',96);                       % image appearance trigger, same as in my other free-viewing data
+    Eyelink('message','SYNCTIME');                                          % so trial zero time is just after image change
+    Eyelink('command', '!*write_ioport 0x378 %d',96);                       % image appearance trigger, same as in my other free-viewing data
     tstart      = GetSecs;                                                  % timer trial start
 %     last_stim   = tstart;                                                   % in this case, this mean image appearace
-  Eyelink('WaitForModeReady', 50);
+    Eyelink('WaitForModeReady', 50);
    
 % 
-     Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port
+    Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port
 %     Eyelink('WaitForModeReady', 50);
 %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % TACTILE STIMULATION
@@ -414,28 +418,28 @@ for nT = 16:nTrials                                                          % l
     center      = 1; 
     prevst      = 0; fixt = 0;
     
-    while GetSecs<tstart+win.trial_max_length                           % lopp until trials finishes
-         if fixt && GetSecs>targettime+win.tfix_target
+    while GetSecs<tstart+win.trial_max_length                                       % lopp until trials finishes
+         if fixt && GetSecs>targettime+win.tfix_target                              % if time runs off, then perf and rT = 0 
             win.result.perf(nT)     = 1;
-            win.result.rT(nT)       = targettime; 
+            win.result.rT(nT)       = targettime-tstart; 
             break
         end
         if GetSecs>tstart+rvals(stim_idx) && nT>win.test_trials && ~prevst
-            if  center || catcht
-                if win.blockcue(nT)==1                                            % when cue is instructive
-                    if targetpos(1)<win.res(1)/2 && win.blockcond(nT) == 0   
+            if  center || catcht                                                    % Stimulation: 1 - left uncross; 2 - right uncross; 5 - left cross; 6 - right cross
+                if win.blockcue(nT)==1                                              % when cue is instructive
+                    if targetpos(1)<win.res(1)/2 && win.blockcond(nT) == 0          % left target / uncrossed / LH stimulation
                         stim = 1;
-                    elseif targetpos(1)>win.res(1)/2 && win.blockcond(nT) == 0   
+                    elseif targetpos(1)>win.res(1)/2 && win.blockcond(nT) == 0      % right target / uncrossed / RH stimulation
                         stim = 2;
-                    elseif targetpos(1)<win.res(1)/2 && win.blockcond(nT) == 1   
+                    elseif targetpos(1)<win.res(1)/2 && win.blockcond(nT) == 1      % left target / crossed / RH stimulation
                         stim = 6;
-                    elseif targetpos(1)>win.res(1)/2 && win.blockcond(nT) == 1
+                    elseif targetpos(1)>win.res(1)/2 && win.blockcond(nT) == 1      % right target / crossed / LH stimulation
                         stim = 5;
                     end
-                else
-                    stim      = round(1+rand(1));                                     % 1 - left uncross; 2 - right uncross; 5 - left cross; 6 - right cross
+                else                                                                % if stimulation is not instructive, we choose randomly
+                    stim      = round(1+rand(1));                                       
                     if win.blockcond(nT) == 1
-                    stim      = stim+4;
+                        stim      = stim+4;
                     end
                 end
                 Eyelink('command', '!*write_ioport 0x378 %d',stim);               % start stimulation by sending a signal through the parallel port 
@@ -447,7 +451,8 @@ for nT = 16:nTrials                                                          % l
                 display(sprintf('\n Delivered stimulation at the %s hand %s  %4.2f',handstr{stim},crossstr{win.blockcond(nT)+1},GetSecs-tstart))
             end
         end
-        % here we check if the target was found or wether 
+        % here we check if the target was found and whether the gaze is on
+        % the central columns
         [data,type] = get_ETdata;
         if type ==6 % start fixation
             if abs(data.genx(win.el.eye_used+1)-win.res(1)./2)<win.center_thr
@@ -468,9 +473,10 @@ for nT = 16:nTrials                                                          % l
             end
         end
     end
+    Eyelink('message','METATR rt %d',round(win.result.rT(nT)*1000));       % reaction time in the eye=tracker file
+    Eyelink('WaitForModeReady', 50);
+         
     Screen('FillRect', win.hndl, win.bkgcolor);                             % remove what was writte or displayed
-    Screen('DrawTexture', win.hndl, fixIndex);                              % drift correction image
-    Screen('Flip', win.hndl);
     Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port for last time
     Eyelink('WaitForModeReady', 50);
     Eyelink('StopRecording');
