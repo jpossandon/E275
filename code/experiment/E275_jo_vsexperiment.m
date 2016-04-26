@@ -10,8 +10,8 @@
 % clear all                                                                 % we clear parameters?
 % this is for debugging
 win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
-win.stim_test               = 0;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
-% PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
+win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
+%  PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
 
 % Screen parameters
 win.whichScreen             = 0;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
@@ -31,7 +31,7 @@ win.tfix_target             = .5;
 win.tact_freq               = 200;                                          % frequency of stimulation in Hz
 win.stim_dur                = .025;                                         % duration of tactile stimulation. The vibrator takes some time to stop its motion so for around 50 ms we use 25 ms of stimulation time (ask Tobias for the exact latencies they have measured)
 win.stim_min_latency        = .300;                                         % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
-win.halflife                = win.trial_max_length/3;                       % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
+win.halflife                = win.trial_max_length/4;                       % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
 win.stim_lambda             = log(2)./win.halflife;                                 
 
 % Blocks and trials
@@ -336,22 +336,23 @@ for nT = 1:nTrials                                                          % lo
             draw_instructions_and_wait(txt9,win.bkgcolor,win.hndl,win.in_dev,1)
         end      
         b = b+1;
-        if nT>1
-            win.halflife(b)                = median(win.result.rT(~win.result.stim));    % half-life set to median of RT without stimulation
-            win.stim_lambda(b)             = log(2)./win.halflife; 
+        if nT>win.t_perblock+win.test_trials
+            win.halflife(b)                = median(win.result.rT(~win.result.stim & [ones(1,nT), zeros(1,nTrials-nT)]));    % half-life set to median of RT without stimulation
+            win.stim_lambda(b)             = log(2)./win.halflife(b); 
         end 
         if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
             EyelinkDoTrackerSetup(win.el);
         end
         
         if win.blockcond(nT) == 0 && win.blockcue(nT)==0
-            DrawFormattedText(win.hndl, txt10,'center','center',255,55);
+            draw_instructions_and_wait(txt10,win.bkgcolor,win.hndl,win.in_dev,1)
+%             DrawFormattedText(win.hndl, txt10,'center','center',255,55);
         elseif win.blockcond(nT) == 1 && win.blockcue(nT)==0
-            DrawFormattedText(win.hndl,txt11,'center','center',255,55);
+            draw_instructions_and_wait(txt11,win.bkgcolor,win.hndl,win.in_dev,1)
         elseif win.blockcond(nT) == 0 && win.blockcue(nT)==1
-            DrawFormattedText(win.hndl, txt12,'center','center',255,55);
+            draw_instructions_and_wait(txt12,win.bkgcolor,win.hndl,win.in_dev,1)
         elseif win.blockcond(nT) == 1 && win.blockcue(nT)==1
-            DrawFormattedText(win.hndl,txt13,'center','center',255,55);
+           draw_instructions_and_wait(txt13,win.bkgcolor,win.hndl,win.in_dev,1)
         end
         Screen('Flip', win.hndl);
         if win.in_dev == 1                                                              
@@ -411,7 +412,7 @@ for nT = 1:nTrials                                                          % lo
     
 %     rvals     =  win.stim_min_latency + (win.stim_max_latency-win.stim_min_latency).*rand(100,1); % interstimulation intervals defined by an uniform distribution    
     rvals       = win.stim_min_latency + ...                                % interstimulation intervals defined by an exponential distribution with half-life = 1/lambda
-                (-1./win.stim_lambda(b) .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
+                (-1./win.stim_lambda(1) .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
     if rand(1)<win.catchp                                                   % catch trials in which stimulation occurs anywhere
         catcht = 1;
     else
@@ -480,6 +481,9 @@ for nT = 1:nTrials                                                          % lo
     end
     if prevst
         win.result.stim(nT)     = 1;
+    end
+    if ~fixt
+        win.result.rT(nT)       = win.trial_max_length;
     end
         
     Eyelink('message','METATR rt %d',round(win.result.rT(nT)*1000));       % reaction time in the eye=tracker file
