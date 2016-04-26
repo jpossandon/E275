@@ -31,12 +31,12 @@ win.tfix_target             = .5;
 win.tact_freq               = 200;                                          % frequency of stimulation in Hz
 win.stim_dur                = .025;                                         % duration of tactile stimulation. The vibrator takes some time to stop its motion so for around 50 ms we use 25 ms of stimulation time (ask Tobias for the exact latencies they have measured)
 win.stim_min_latency        = .300;                                         % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
-win.halflife                = 8/3;                                          % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
+win.halflife                = win.trial_max_length/3;                       % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
 win.stim_lambda             = log(2)./win.halflife;                                 
 
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 6;
+win.rep_item                = 2;
 win.exp_trials              = win.ncols*win.ncols*win.rep_item;
 win.test_trials             = 16;
 win.t_perblock              = 16;
@@ -305,6 +305,7 @@ win.targ_thr        = [ceil(.75*(max(unique(diff(unique(posVec.scr(1,:))))))) ..
 
 win.result.perf     = zeros(1,nTrials);
 win.result.rT       = zeros(1,nTrials);
+win.result.stim     = zeros(1,nTrials);
             
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % THE ACTUAL EXPERIMENT
@@ -319,7 +320,7 @@ for nT = 1:nTrials                                                          % lo
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     if  win.block_start(nT) == 1                                            % if it is a trial that starts a block   
-   
+     
         % Hand position block intructions
         if nT ==1 && win.blockcond(nT) == 0                                  % practice trials and uncrossed
             draw_instructions_and_wait(txt6,win.bkgcolor,win.hndl,win.in_dev,1)
@@ -335,6 +336,10 @@ for nT = 1:nTrials                                                          % lo
             draw_instructions_and_wait(txt9,win.bkgcolor,win.hndl,win.in_dev,1)
         end      
         b = b+1;
+        if nT>1
+            win.halflife(b)                = median(win.result.rT(~win.result.stim));    % half-life set to median of RT without stimulation
+            win.stim_lambda(b)             = log(2)./win.halflife; 
+        end 
         if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
             EyelinkDoTrackerSetup(win.el);
         end
@@ -406,7 +411,7 @@ for nT = 1:nTrials                                                          % lo
     
 %     rvals     =  win.stim_min_latency + (win.stim_max_latency-win.stim_min_latency).*rand(100,1); % interstimulation intervals defined by an uniform distribution    
     rvals       = win.stim_min_latency + ...                                % interstimulation intervals defined by an exponential distribution with half-life = 1/lambda
-                (-1./win.stim_lambda .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
+                (-1./win.stim_lambda(b) .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
     if rand(1)<win.catchp                                                   % catch trials in which stimulation occurs anywhere
         catcht = 1;
     else
@@ -424,7 +429,7 @@ for nT = 1:nTrials                                                          % lo
             win.result.rT(nT)       = targettime-tstart; 
             break
         end
-        if GetSecs>tstart+rvals(stim_idx) && nT>win.test_trials && ~prevst
+        if GetSecs>tstart+rvals(stim_idx) && nT>win.test_trials && ~prevst && ~fixt
             if  center || catcht                                                    % Stimulation: 1 - left uncross; 2 - right uncross; 5 - left cross; 6 - right cross
                 if win.blockcue(nT)==1                                              % when cue is instructive
                     if targetpos(1)<win.res(1)/2 && win.blockcond(nT) == 0          % left target / uncrossed / LH stimulation
@@ -473,9 +478,15 @@ for nT = 1:nTrials                                                          % lo
             end
         end
     end
+    if prevst
+        win.result.stim(nT)     = 1;
+    end
+        
     Eyelink('message','METATR rt %d',round(win.result.rT(nT)*1000));       % reaction time in the eye=tracker file
     Eyelink('WaitForModeReady', 50);
-         
+    Eyelink('message','METATR stim %d',prevst);       % reaction time in the eye=tracker file
+    Eyelink('WaitForModeReady', 50);
+    
     Screen('FillRect', win.hndl, win.bkgcolor);                             % remove what was writte or displayed
     Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port for last time
     Eyelink('WaitForModeReady', 50);
