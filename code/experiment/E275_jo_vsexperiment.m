@@ -97,7 +97,7 @@ Screen('Preference', 'SkipSyncTests', 2)                                    % fo
 
 [win.cntr(1), win.cntr(2)] = WindowCenter(win.hndl);                        % get where is the display screen center
 Screen('BlendFunction',win.hndl, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     % enable alpha blending for smooth drawing
-% HideCursor(win.hndl);                                                       % this to hide the mouse
+HideCursor(win.hndl);                                                       % this to hide the mouse
 Screen('TextSize', win.hndl, win.FontSZ);                                   % sets teh font size of the text to be diplayed
 KbName('UnifyKeyNames');                                                    % recommended, called again in EyelinkInitDefaults
 
@@ -186,7 +186,7 @@ Eyelink('Command', sprintf('add_file_preamble_text ''%s''', setStr));       % th
 wrect = Screen('Rect', win.hndl);                                           
 Eyelink('Message','DISPLAY_COORDS %d %d %d %d', 0, 0, wrect(1), wrect(2));  % write display resolution to EDF file
 
-% ListenChar(2)                                                               % disable MATLAB windows' keyboard listen (no unwanted edits)
+ListenChar(2)                                                               % disable MATLAB windows' keyboard listen (no unwanted edits)
  
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -320,7 +320,9 @@ for nT = 1:nTrials                                                          % lo
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     if  win.block_start(nT) == 1                                            % if it is a trial that starts a block   
-     
+        if nT>1
+             PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
+        end
         % Hand position block intructions
         if nT ==1 && win.blockcond(nT) == 0                                  % practice trials and uncrossed
             draw_instructions_and_wait(txt6,win.bkgcolor,win.hndl,win.in_dev,1)
@@ -336,7 +338,7 @@ for nT = 1:nTrials                                                          % lo
             draw_instructions_and_wait(txt9,win.bkgcolor,win.hndl,win.in_dev,1)
         end      
         b = b+1;
-        if nT>win.t_perblock+win.test_trials
+        if nT>win.test_trials
             win.halflife(b)                = median(win.result.rT(~win.result.stim & [ones(1,nT), zeros(1,nTrials-nT)]));    % half-life set to median of RT without stimulation
             win.stim_lambda(b)             = log(2)./win.halflife(b); 
         end 
@@ -344,7 +346,7 @@ for nT = 1:nTrials                                                          % lo
             EyelinkDoTrackerSetup(win.el);
         end
         
-        if win.blockcond(nT) == 0 && win.blockcue(nT)==0
+        if win.blockcond(nT) == 0 && win.blockcue(nT)==0                                % this gives the instructions of crossing and stimulation relevance all again
             draw_instructions_and_wait(txt10,win.bkgcolor,win.hndl,win.in_dev,1)
 %             DrawFormattedText(win.hndl, txt10,'center','center',255,55);
         elseif win.blockcond(nT) == 1 && win.blockcue(nT)==0
@@ -354,12 +356,13 @@ for nT = 1:nTrials                                                          % lo
         elseif win.blockcond(nT) == 1 && win.blockcue(nT)==1
            draw_instructions_and_wait(txt13,win.bkgcolor,win.hndl,win.in_dev,1)
         end
-        Screen('Flip', win.hndl);
-        if win.in_dev == 1                                                              
-            waitForKB_linux({'space'});                                           
-        elseif win.in_dev == 2
-            GetClicks(win.hndl,0);                                                      
-        end
+         t1          = PsychPortAudio('Start', pahandle, 0, 0, 0);
+%         Screen('Flip', win.hndl);
+%         if win.in_dev == 1                                                              
+%             waitForKB_linux({'space'});                                           
+%         elseif win.in_dev == 2
+%             GetClicks(win.hndl,0);                                                      
+%         end
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -372,7 +375,7 @@ for nT = 1:nTrials                                                          % lo
     Screen('DrawTexture', win.hndl, fixIndex);                          % drift correction image
     Screen('Flip', win.hndl);
    
-    t1          = PsychPortAudio('Start', pahandle, 0, 0, 0);
+   
     EyelinkDoDriftCorrect2(win.el,win.res(1)/2,win.res(2)/2,0)          % drift correction 
     Screen('FillRect', win.hndl, win.bkgcolor);
     posVec      = vsCreateStimulus(win.vsTrials(nT).stimulus.posGrid, ...
@@ -412,7 +415,7 @@ for nT = 1:nTrials                                                          % lo
     
 %     rvals     =  win.stim_min_latency + (win.stim_max_latency-win.stim_min_latency).*rand(100,1); % interstimulation intervals defined by an uniform distribution    
     rvals       = win.stim_min_latency + ...                                % interstimulation intervals defined by an exponential distribution with half-life = 1/lambda
-                (-1./win.stim_lambda(1) .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
+                (-1./win.stim_lambda(b) .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
     if rand(1)<win.catchp                                                   % catch trials in which stimulation occurs anywhere
         catcht = 1;
     else
@@ -496,10 +499,10 @@ for nT = 1:nTrials                                                          % lo
     Eyelink('WaitForModeReady', 50);
     Eyelink('StopRecording');
     Eyelink('WaitForModeReady', 50);
-    PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
-end
+  end
 
-                                           
+   PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
+                                          
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Finishing EDF file and transfering info (in case experiment is interrupted
