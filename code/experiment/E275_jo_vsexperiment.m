@@ -11,7 +11,7 @@
 % this is for debugging
 win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
 win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
-%  PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
+% PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
 
 % Screen parameters
 win.whichScreen             = 0;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
@@ -36,7 +36,7 @@ win.stim_lambda             = log(2)./win.halflife;
 
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 2;
+win.rep_item                = 4;
 win.exp_trials              = win.ncols*win.ncols*win.rep_item;
 win.test_trials             = 16;
 win.t_perblock              = 16;
@@ -152,13 +152,13 @@ txt7     = double(['Beginn des Experiments\n Test Block \n  F' 252 'r den n' 228
             'chsten Block bitte die H' 228 'nde ' 252 'berkreuzen (crossed). \n Zum Fortfahren die ' txtdev]);      
 % txt 9&10 are contingent to the block so they are defined later
 txt10    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-        'nde parallel positionieren. Ignore the tactile stimulation. Zum Fortfahren die ' txtdev]);
+        'nde parallel positionieren. Bitte ignoriere die Vibration. Zum Fortfahren die ' txtdev]);
 txt11    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-        'nde ' 252 'berkreuzen. Ignore the tactile stimulation. Zum Fortfahren die '  txtdev]);
+        'nde ' 252 'berkreuzen. Bitte ignoriere die Vibration. Zum Fortfahren die '  txtdev]);
 txt12    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-        'nde parallel positionieren. Tactile stimulation indicate the side of the screen where the target is. Zum Fortfahren die ' txtdev]);
+        'nde parallel positionieren. Die Vibration gibt an, auf welcher Seite des Bildschirms das Target (Kreis ohne Strich) erscheint. Zum Fortfahren die ' txtdev]);
 txt13    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
-        'nde ' 252 'berkreuzen. Tactile stimulation indicate the side of the screen where the target is. Zum Fortfahren die '  txtdev]);
+        'nde ' 252 'berkreuzen. Die Vibration gibt an, auf welcher Seite des Bildschirms das Target (Kreis ohne Strich) erscheint. Zum Fortfahren die '  txtdev]);
 
 %these are for debugging
 handstr  = {'Left','Right','','','Left','Right'};
@@ -277,7 +277,7 @@ fixIndex            = Screen('MakeTexture', win.hndl, image);               % th
 % Randomization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sn                  = str2num(win.s_n);
-win.vsTrials        = vsCreateTrials(win.trial_max_length,2,win.ncols);                                    % (!!TODO: set-up number of trials)
+win.vsTrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);                                    % (!!TODO: set-up number of trials)
 if rem(sn,2)                                                           % we balance across subjects on which position they start(according to their subject number) whether they start the experiment with the hand crossed or uncrossed, again this should not matter that much
     win.blockcond   = [zeros(1,win.test_trials),...                         % blockcond refer to the crossing (0-uncross; 1-cross)
         repmat([zeros(1,win.t_perblock),ones(1,win.t_perblock)],1,win.nBlocks/2)];
@@ -339,7 +339,7 @@ for nT = 1:nTrials                                                          % lo
         end      
         b = b+1;
         if nT>win.test_trials
-            win.halflife(b)                = median(win.result.rT(~win.result.stim & [ones(1,nT), zeros(1,nTrials-nT)]));    % half-life set to median of RT without stimulation
+            win.halflife(b)                = median(win.result.rT(~win.result.stim & [ones(1,nT), zeros(1,nTrials-nT)]))/2;    % half-life set to median of RT without stimulation
             win.stim_lambda(b)             = log(2)./win.halflife(b); 
         end 
         if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
@@ -499,6 +499,7 @@ for nT = 1:nTrials                                                          % lo
     Eyelink('WaitForModeReady', 50);
     Eyelink('StopRecording');
     Eyelink('WaitForModeReady', 50);
+    save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
   end
 
    PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
@@ -522,7 +523,7 @@ if ~win.DoDummyMode
     end
 end
 
-save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
+% save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CLOSING ALL DEVICES, PORTS, ETC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
