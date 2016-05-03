@@ -9,12 +9,12 @@
 
 % clear all                                                                 % we clear parameters?
 % this is for debugging
-win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
+win.DoDummyMode             = 1;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
 win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
 % PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
 
 % Screen parameters
-win.whichScreen             = 0;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
+win.whichScreen             = 2;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
 win.FontSZ                  = 20;                                           % font size
 win.bkgcolor                = 127;                                          % screen background color, 127 gray
 win.Vdst                    = 66;                                           % (!CHANGE!) viewer's distance from screen [cm]         
