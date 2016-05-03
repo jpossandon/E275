@@ -388,6 +388,7 @@ el.calibrationtargetwidth  = .3; % [% of window width]
 el.calibrationtargetcolour = 255; % CLUT color index
 % beep when a target is presented? default true
 el.targetbeep = false; 
+el.feedbackbeep = false;
 % show calibration results on Display Computer? default true
 el.displayCalResults = true;
 % el.eyeimgsize = 50; % [percentage of screen], default 30

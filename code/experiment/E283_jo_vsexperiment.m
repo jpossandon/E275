@@ -36,7 +36,7 @@ win.stim_lambda             = log(2)./win.halflife;
 
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 4;
+win.rep_item                = 1;
 win.exp_trials              = win.ncols*win.ncols*win.rep_item;
 win.test_trials             = 16;
 win.t_perblock              = 16;
@@ -63,12 +63,14 @@ end
 
 win.s_n                     = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
 win.fnameEDF                = sprintf('s%02d_vs.EDF',str2num(win.s_n));       % EDF name can be only 8 letters long, so we can have numbers only between 01 and 99
-pathEDF                     = [exp_path 'data/' sprintf('s%02d/',str2num(win.s_n))];                           % where the EDF files are going to be saved
+pathEDF                     = [exp_path 'data/' sprintf('s%02dvs/',str2num(win.s_n))];                           % where the EDF files are going to be saved
 if exist([pathEDF win.fnameEDF],'file')                                         % checks whether there is a file with the same name
     rp = input(sprintf('!Filename %s already exist, do you want to overwrite it (y/n)?',win.fnameEDF),'s');
     if (strcmpi(rp,'n') || strcmpi(rp,'no'))
         error('filename already exist')
     end
+else
+    mkdir(pathEDF)
 end
 
 win.s_age                   = input('Subject age: ','s');
@@ -83,7 +85,7 @@ ClockRandSeed();                                                            % th
 [IsConnected, IsDummy] = EyelinkInit(win.DoDummyMode);                      % open the link with the eyetracker
 assert(IsConnected==1, 'Failed to initialize EyeLink!')
 Eyelink('command', '!*write_ioport 0x378 0');                               % set lpt to 0
-% ListenChar(2)                                                             % disable key listening by MATLAB windows(CTRL+C overridable)
+                                                          % disable key listening by MATLAB windows(CTRL+C overridable)
 
 prevVerbos = Screen('Preference','Verbosity', 2);                           % this two lines it to set how much we want the PTB to output in the command and display window 
 prevVisDbg = Screen('Preference','VisualDebugLevel',3);                     % verbosity-1 (default 3); vdbg-2 (default 4)
@@ -107,25 +109,25 @@ KbName('UnifyKeyNames');                                                    % re
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 freq                        = 48000;                                        % noise frequency in Hz
-dur                         = 15;                                           % noise duration in seconds
+dur                         = 16;                                           % noise duration in seconds
 wavedata1                   = rand(1,freq*dur)*2-1;                         % the noise
 wavedata2                   = sin(2.*pi.*win.tact_freq.*[0:1/freq:dur-1/freq]);      % the stimulus
 wavedata                    = [wavedata1 ; wavedata2];                      % double for stereo
 nrchannels                  = 2;                                            % ditto
-
-InitializePsychSound;                                                       % Perform basic initialization of the sound driver:
-
-try                                                                         % Try with the 'freq'uency we wanted:
-    pahandle = PsychPortAudio('Open', [], [], 0, freq, nrchannels);
-catch                                                                       % Failed. Retry with default frequency as suggested by device:
-    fprintf('\nCould not open device at wanted playback frequency of %i Hz. Will retry with device default frequency.\n', freq);
-    fprintf('Sound may sound a bit out of tune, ...\n\n');
-    psychlasterror('reset');
+% 
+ InitializePsychSound;                                                       % Perform basic initialization of the sound driver:
+% 
+ try                                                                         % Try with the 'freq'uency we wanted:
+     pahandle = PsychPortAudio('Open', [], [], 0, freq, nrchannels);
+ catch                                                                       % Failed. Retry with default frequency as suggested by device:
+     fprintf('\nCould not open device at wanted playback frequency of %i Hz. Will retry with device default frequency.\n', freq);
+     fprintf('Sound may sound a bit out of tune, ...\n\n');
+     psychlasterror('reset');
     pahandle = PsychPortAudio('Open', [], [], 0, [], nrchannels);
-end
-PsychPortAudio('FillBuffer', pahandle, wavedata);                           % Fill the audio playback buffer with the audio data 'wavedata':
-PsychPortAudio('Volume', pahandle,win.wn_vol);                              % Sets the volume (between 0 and 1)
-s = PsychPortAudio('GetStatus', pahandle);                                  % Status of the port, necessary later to defice wheter to start or stop audio
+ end
+ PsychPortAudio('FillBuffer', pahandle, wavedata);                           % Fill the audio playback buffer with the audio data 'wavedata':
+ PsychPortAudio('Volume', pahandle,win.wn_vol);                              % Sets the volume (between 0 and 1)
+ s = PsychPortAudio('GetStatus', pahandle);                                  % Status of the port, necessary later to defice wheter to start or stop audio
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,8 +206,7 @@ if win.stim_test
 
     DrawFormattedText(win.hndl,txt3,'center','center',255,55);                  % TEST LEFT STIMULATOR (three times)
     Screen('Flip', win.hndl);
-    t1              = PsychPortAudio('Start', pahandle, 0, 0, 0);               % Start the sounds
-
+     t1              = PsychPortAudio('Start', pahandle, 0, 0, 0);               % Start the sounds
     WaitSecs(1);
     for e=1:3
         Eyelink('command', '!*write_ioport 0x378 0');                  
@@ -255,7 +256,7 @@ if win.stim_test
     elseif win.in_dev == 2
         [clicks,x,y,whichButton] = GetClicks(win.hndl,0);                       % mouse clik
     end
-PsychPortAudio('Stop', pahandle);
+ PsychPortAudio('Stop', pahandle);
     fprintf('\nTest ready!');
 else
     fprintf('\nSkipping stimulators Test.\n Only during experiment debugging');
@@ -295,7 +296,7 @@ win.block_start     = [[1,zeros(1,win.test_trials-1)],[repmat([1,zeros(1,win.t_p
 
 %%% position of the two center column for center threhsold and target threshold
 posVec              = vsCreateStimulus(win.vsTrials(1).stimulus.posGrid, ...
-                    win, win.hndl, true,10);
+                    win, win.hndl, true,10,5);
 Screen('FillRect', win.hndl, win.bkgcolor);  
 
 win.center_thr      = ceil(max(unique(diff(unique(posVec.scr(1,:)))))+...
@@ -320,9 +321,9 @@ for nT = 1:nTrials                                                          % lo
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     if  win.block_start(nT) == 1                                            % if it is a trial that starts a block   
-        if nT>1
-             PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
-        end
+         if nT>1
+              PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
+         end
         % Hand position block intructions
         if nT ==1 && win.blockcond(nT) == 0                                  % practice trials and uncrossed
             draw_instructions_and_wait(txt6,win.bkgcolor,win.hndl,win.in_dev,1)
@@ -339,7 +340,7 @@ for nT = 1:nTrials                                                          % lo
         end      
         b = b+1;
         if nT>win.test_trials
-            win.halflife(b)                = median(win.result.rT(~win.result.stim & [ones(1,nT), zeros(1,nTrials-nT)]))/2;    % half-life set to median of RT without stimulation
+            win.halflife(b)                = median(win.result.rT(~win.result.stim & [ones(1,nT), zeros(1,nTrials-nT)]))/1.5;    % half-life set to median of RT without stimulation
             win.stim_lambda(b)             = log(2)./win.halflife(b); 
         end 
         if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
@@ -356,7 +357,8 @@ for nT = 1:nTrials                                                          % lo
         elseif win.blockcond(nT) == 1 && win.blockcue(nT)==1
            draw_instructions_and_wait(txt13,win.bkgcolor,win.hndl,win.in_dev,1)
         end
-         t1          = PsychPortAudio('Start', pahandle, 0, 0, 0);
+ 
+          t1          = PsychPortAudio('Start', pahandle, 0, 0, 0);
 %         Screen('Flip', win.hndl);
 %         if win.in_dev == 1                                                              
 %             waitForKB_linux({'space'});                                           
@@ -369,17 +371,16 @@ for nT = 1:nTrials                                                          % lo
     % TRIALS
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Eyelink('message','TRIALID %d', nT);
-    Eyelink('Command','record_status_message ''Block %d Trial %d''',b,nT);
+    Eyelink('Command','record_status_message ''Block %d/%d Trial %d/%d/%d''',b,win.nBlocks+1,nT,win.t_perblock,win.exp_trials+win.test_trials);
     Eyelink('WaitForModeReady', 50);
     Screen('FillRect', win.hndl, win.bkgcolor);                         % remove what was writte or displayed
     Screen('DrawTexture', win.hndl, fixIndex);                          % drift correction image
     Screen('Flip', win.hndl);
    
-   
     EyelinkDoDriftCorrect2(win.el,win.res(1)/2,win.res(2)/2,0)          % drift correction 
     Screen('FillRect', win.hndl, win.bkgcolor);
     posVec      = vsCreateStimulus(win.vsTrials(nT).stimulus.posGrid, ...
-                            win, win.hndl, true,10);
+                            win, win.hndl, true,10,5);
 
     Eyelink('StartRecording');  
     Eyelink('WaitForModeReady', 50);      
@@ -502,7 +503,7 @@ for nT = 1:nTrials                                                          % lo
     save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
   end
 
-   PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
+    PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
                                           
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -76,7 +76,7 @@ if draw==1
 end
 
 if el.targetbeep==1
-	EyelinkCalTargetBeep(el);
+ 	EyelinkCalTargetBeep(el);
 end
 
 status=Eyelink( 'DriftCorrStart', x, y);
@@ -132,7 +132,7 @@ display('hola')
 if result==el.ESC_KEY || result==-1	% Did we abort drift correction?
 	% yes: go to setup menu to fix any problems
 	if el.targetbeep==1
-		EyelinkCalDoneBeep(el, 0);
+ 		EyelinkCalDoneBeep(el, 0);
 	end
 	if allowsetup==1
 		EyelinkDoTrackerSetup(el);

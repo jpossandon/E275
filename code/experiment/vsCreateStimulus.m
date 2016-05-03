@@ -1,4 +1,4 @@
-function posVec = vsCreateStimulus(vsPosGrid, scr, winH, draw2EL,borderH)
+function posVec = vsCreateStimulus(vsPosGrid, scr, winH, draw2EL,borderH,borderV)
 % Create stimulus array for visual search task; E.g. used by vsRunTrials.m.
 %
 % INPUT
@@ -60,12 +60,13 @@ end
 % restrict stimulus extent to requested area (in pixels [x y] "resolution")
 stimRes = min([scr.res; win.res]);
 borderH = borderH/100*stimRes(1);
+borderV = borderV/100*stimRes(2);
 % evenly distribute positions on grid, with same distances to area borders
 dsX = (stimRes(1)-2*borderH)/(grdX+1); % one more distance than dots | - o - o - o - |
-dsY = stimRes(2)/(grdY+1);
+dsY = (stimRes(2)-2*borderV)/(grdY+1);
 % create symbol positions w.r.t. virtual stimulus area
 [vrtPosX, vrtPosY] = meshgrid(linspace(dsX+borderH, stimRes(1)-dsX-borderH, grdX),...
-                             linspace(dsY, stimRes(2)-dsY, grdY));
+                             linspace(dsY+borderV, stimRes(2)-dsY-borderV, grdY));
 posVec.vrt = [vrtPosX(:) vrtPosY(:)]'; % 2-row vector, for logging
 % add offsets necessary for centered presentation on actual screen
 scrPosX = floor( (win.res(1)-stimRes(1))/2 + vrtPosX ); % round to pixels
