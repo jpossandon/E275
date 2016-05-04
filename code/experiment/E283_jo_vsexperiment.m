@@ -9,12 +9,12 @@
 
 % clear all                                                                 % we clear parameters?
 % this is for debugging
-win.DoDummyMode             = 1;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
+win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
 win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
 % PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
 
 % Screen parameters
-win.whichScreen             = 2;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
+win.whichScreen             = 0;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
 win.FontSZ                  = 20;                                           % font size
 win.bkgcolor                = 127;                                          % screen background color, 127 gray
 win.Vdst                    = 66;                                           % (!CHANGE!) viewer's distance from screen [cm]         
@@ -36,7 +36,7 @@ win.stim_lambda             = log(2)./win.halflife;
 
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 1;
+win.rep_item                = 4;
 win.exp_trials              = win.ncols*win.ncols*win.rep_item;
 win.test_trials             = 16;
 win.t_perblock              = 16;
@@ -126,7 +126,7 @@ nrchannels                  = 2;                                            % di
     pahandle = PsychPortAudio('Open', [], [], 0, [], nrchannels);
  end
  PsychPortAudio('FillBuffer', pahandle, wavedata);                           % Fill the audio playback buffer with the audio data 'wavedata':
- PsychPortAudio('Volume', pahandle,win.wn_vol);                              % Sets the volume (between 0 and 1)
+%  PsychPortAudio('Volume', pahandle,win.wn_vol);                              % Sets the volume (between 0 and 1)
  s = PsychPortAudio('GetStatus', pahandle);                                  % Status of the port, necessary later to defice wheter to start or stop audio
 
 
@@ -161,6 +161,7 @@ txt12    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
         'nde parallel positionieren. Die Vibration gibt an, auf welcher Seite des Bildschirms das Target (Kreis ohne Strich) erscheint. Zum Fortfahren die ' txtdev]);
 txt13    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
         'nde ' 252 'berkreuzen. Die Vibration gibt an, auf welcher Seite des Bildschirms das Target (Kreis ohne Strich) erscheint. Zum Fortfahren die '  txtdev]);
+txt14    = double(['Das Experiment ist nun beendet. Vielen Dank f' 252 'r die Teilnahme! '  txtdev]);
 
 %these are for debugging
 handstr  = {'Left','Right','','','Left','Right'};
@@ -278,7 +279,12 @@ fixIndex            = Screen('MakeTexture', win.hndl, image);               % th
 % Randomization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sn                  = str2num(win.s_n);
-win.vsTrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);                                    % (!!TODO: set-up number of trials)
+win.vsTrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);
+win.vsTrials(win.test_trials+1:end) = [];
+experimentrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);                                    % (!!TODO: set-up number of trials)
+for e = 1:length(experimentrials)
+    win.vsTrials(e+win.test_trials) = experimentrials(e);
+end
 if rem(sn,2)                                                           % we balance across subjects on which position they start(according to their subject number) whether they start the experiment with the hand crossed or uncrossed, again this should not matter that much
     win.blockcond   = [zeros(1,win.test_trials),...                         % blockcond refer to the crossing (0-uncross; 1-cross)
         repmat([zeros(1,win.t_perblock),ones(1,win.t_perblock)],1,win.nBlocks/2)];
@@ -313,7 +319,7 @@ win.result.stim     = zeros(1,nTrials);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 b                   = 0;                                                    % block flag
-for nT = 1:nTrials                                                          % loop throught the experiment trials
+for nT = 1%:nTrials                                                          % loop throught the experiment trials
     
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -379,9 +385,10 @@ for nT = 1:nTrials                                                          % lo
    
     EyelinkDoDriftCorrect2(win.el,win.res(1)/2,win.res(2)/2,0)          % drift correction 
     Screen('FillRect', win.hndl, win.bkgcolor);
-    posVec      = vsCreateStimulus(win.vsTrials(nT).stimulus.posGrid, ...
+ 
+        posVec      = vsCreateStimulus(win.vsTrials(nT).stimulus.posGrid, ...
                             win, win.hndl, true,10,5);
-
+  
     Eyelink('StartRecording');  
     Eyelink('WaitForModeReady', 50);      
     
@@ -502,8 +509,11 @@ for nT = 1:nTrials                                                          % lo
     Eyelink('WaitForModeReady', 50);
     save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
   end
-
-    PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
+ Screen('FillRect', win.hndl, win.bkgcolor);                         % remove what was writte or displayed
+ Screen('Flip', win.hndl);
+ draw_instructions_and_wait(txt14,win.bkgcolor,win.hndl,win.in_dev,1)
+ 
+ PsychPortAudio('Stop', pahandle);                                       % Stop the white noise after the last trial
                                           
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
