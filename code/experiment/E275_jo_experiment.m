@@ -124,7 +124,7 @@ Screen('BlendFunction',win.hndl, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     % en
 HideCursor(win.hndl);                                                       % this to hide the mouse
 Screen('TextSize', win.hndl, win.FontSZ);                                   % sets teh font size of the text to be diplayed
 KbName('UnifyKeyNames');                                                    % recommended, called again in EyelinkInitDefaults
-
+win.start_time = clock;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SERIAL PORT SETTING
