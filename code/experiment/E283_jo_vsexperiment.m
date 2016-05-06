@@ -30,13 +30,13 @@ win.tfix_target             = .5;
 % Tactile stimulation settings (using the box stimulator)
 win.tact_freq               = 200;                                          % frequency of stimulation in Hz
 win.stim_dur                = .025;                                         % duration of tactile stimulation. The vibrator takes some time to stop its motion so for around 50 ms we use 25 ms of stimulation time (ask Tobias for the exact latencies they have measured)
-win.stim_min_latency        = .300;                                         % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
+win.stim_min_latency        = .325;                                         % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
 win.halflife                = win.trial_max_length/4;                       % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
 win.stim_lambda             = log(2)./win.halflife;                                 
 
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 4;
+win.rep_item                = 8;
 win.exp_trials              = win.ncols*win.ncols*win.rep_item;
 win.test_trials             = 16;
 win.t_perblock              = 16;
@@ -90,7 +90,7 @@ Eyelink('command', '!*write_ioport 0x378 0');                               % se
 prevVerbos = Screen('Preference','Verbosity', 2);                           % this two lines it to set how much we want the PTB to output in the command and display window 
 prevVisDbg = Screen('Preference','VisualDebugLevel',3);                     % verbosity-1 (default 3); vdbg-2 (default 4)
 Screen('Preference', 'SkipSyncTests', 2)                                    % for maximum accuracy and reliability
-
+win.start_time = clock;
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % START PTB SCREEN
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -346,7 +346,7 @@ for nT = 1%:nTrials                                                          % l
         end      
         b = b+1;
         if nT>win.test_trials
-            win.halflife(b)                = median(win.result.rT(~win.result.stim & [ones(1,nT), zeros(1,nTrials-nT)]))/1.5;    % half-life set to median of RT without stimulation
+            win.halflife(b)                = median([ones(1,nT), zeros(1,nTrials-nT)])/1.5;    % half-life set to median of RT/1.5
             win.stim_lambda(b)             = log(2)./win.halflife(b); 
         end 
         if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
@@ -365,6 +365,7 @@ for nT = 1%:nTrials                                                          % l
         end
  
           t1          = PsychPortAudio('Start', pahandle, 0, 0, 0);
+          tt = 1;
 %         Screen('Flip', win.hndl);
 %         if win.in_dev == 1                                                              
 %             waitForKB_linux({'space'});                                           
@@ -377,8 +378,13 @@ for nT = 1%:nTrials                                                          % l
     % TRIALS
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Eyelink('message','TRIALID %d', nT);
-    Eyelink('Command','record_status_message ''Block %d/%d Trial %d/%d/%d''',b,win.nBlocks+1,nT,win.t_perblock,win.exp_trials+win.test_trials);
+    if win.blockcond(nT) == 0 
+        Eyelink('Command','record_status_message ''Block Uncross %d/%d Trial %d/%d %d/%d''',b,win.nBlocks+1,tt,win.t_perblock,nT,win.exp_trials+win.test_trials);
+    elseif win.blockcond(nT) == 1
+        Eyelink('Command','record_status_message ''Block Cross %d/%d Trial %d/%d %d/%d''',b,win.nBlocks+1,tt,win.t_perblock,nT,win.exp_trials+win.test_trials);
+    end
     Eyelink('WaitForModeReady', 50);
+    tt=tt+1;
     Screen('FillRect', win.hndl, win.bkgcolor);                         % remove what was writte or displayed
     Screen('DrawTexture', win.hndl, fixIndex);                          % drift correction image
     Screen('Flip', win.hndl);
@@ -442,7 +448,7 @@ for nT = 1%:nTrials                                                          % l
             break
         end
         if GetSecs>tstart+rvals(stim_idx) && nT>win.test_trials && ~prevst && ~fixt
-            if  center || catcht                                                    % Stimulation: 1 - left uncross; 2 - right uncross; 5 - left cross; 6 - right cross
+            if  center || catcht                                                    % Stimulation infromative: 1 - left uncross; 2 - right uncross; 5 - left cross; 6 - right cross
                 if win.blockcue(nT)==1                                              % when cue is instructive
                     if targetpos(1)<win.res(1)/2 && win.blockcond(nT) == 0          % left target / uncrossed / LH stimulation
                         stim = 1;
@@ -454,8 +460,8 @@ for nT = 1%:nTrials                                                          % l
                         stim = 5;
                     end
                 else                                                                % if stimulation is not instructive, we choose randomly
-                    stim      = round(1+rand(1));                                       
-                    if win.blockcond(nT) == 1
+                    stim      = round(1+rand(1))+8;                                 % Stimulation uninformative: 9 - left uncross; 10 - right uncross; 13 - left cross; 14 - right cross      
+                     if win.blockcond(nT) == 1
                         stim      = stim+4;
                     end
                 end
@@ -508,7 +514,10 @@ for nT = 1%:nTrials                                                          % l
     Eyelink('StopRecording');
     Eyelink('WaitForModeReady', 50);
     save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
-  end
+end
+WaitSecs(1)
+ win.end_time = clock;
+ save([pathEDF,win.fnameEDF(1:end-3),'mat'],'win')
  Screen('FillRect', win.hndl, win.bkgcolor);                         % remove what was writte or displayed
  Screen('Flip', win.hndl);
  draw_instructions_and_wait(txt14,win.bkgcolor,win.hndl,win.in_dev,1)

@@ -498,7 +498,7 @@ for nT = 1:nTrials                                                          % lo
         end
     end
 end
-
+win.end_time = clock;
 PsychPortAudio('Stop', pahandle);                                           % Stop the white noise after the last trial
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
