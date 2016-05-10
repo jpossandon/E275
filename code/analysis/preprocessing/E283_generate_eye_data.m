@@ -1,9 +1,9 @@
-function E275_generate_eye_data(subjects)
+function E283_generate_eye_data(subjects)
 % generate data experiment touch
 cfg.edfreadpath     = '/home/th/code/edfread/build/linux64/';
 cfg.eyes            = 'monoocular';
 for s = subjects
-    cfg.filename        = sprintf('s%02dvs',s);
+    cfg.filename        = sprintf('s%02d_vs',s);
     cfg.EDFfolder       = sprintf('/home/th/Experiments/E275/data/s%02dvs/',s);
     eyedata             = eyeread(cfg); 
     auxdata             = eyedata.events;
@@ -22,7 +22,7 @@ for s = subjects
     auxstimtrial        = eyedata.marks.trial(strcmp(eyedata.marks.type,'ETtrigger'));
 %     stimdata.value      = auxstim(auxstim<5 & auxstim>0);  % take in account only stimulation start and only stimulation during the trial and not at the start (values 1,2,3 - left, right and bilateral respectively; value 10 is for stim stop and there is NaNs when there was nono stimulation during the complete trial)(initial stimulation is always at time 150 or 151)
 %     stimdata.time       = auxstimtime(auxstim<5 & auxstim>0); %
-%     stimdata.trial      = auxstimtrial(auxstim<5 & auxstim>0);
+     stimdata.trial      = auxstimtrial(auxstim<15 & auxstim>0);
 %     stimdata.subject    = s*ones(1,length(stimdata.trial));
 %     sampledata          = eyedata.samples;
 %     sampledata.subject  = s*ones(1,length(sampledata.time));
@@ -40,16 +40,16 @@ for s = subjects
         auxvalue        = eyedata.marks.value(strcmp(eyedata.marks.type,'tpos') & eyedata.marks.trial == t);
         auxdata.tpos(auxdata.trial == t) = auxvalue;
         % if there is stimulation during the trial (0 - no; 1 - yes) , as there can be more than one stimulation that information will be in the stimdata structure       
-%         if ~isempty(find(stimdata.trial==t))
-%             auxdata.latestim(auxdata.trial == t) = 1;
-%         end
+         if ~isempty(find(stimdata.trial==t))
+             auxdata.latestim(auxdata.trial == t) = 1;
+         end
     end
     auxdata.subject     = s*ones(1,length(auxdata.trial));
     eyedata.events      = auxdata;
    % data                = struct_up('data',auxdata,2);
    % stim                = struct_up('stim',stimdata,2);
    % sample              = struct_up('sample',sampledata,2);
-      save(sprintf('%ss%02deye',cfg.EDFfolder,s),'eyedata') 
+      save(sprintf('%ss%02d_vs_eye',cfg.EDFfolder,s),'eyedata') 
 end
      
 % save('/net/store/nbp/touch/data/alleyedata','data','stim')
