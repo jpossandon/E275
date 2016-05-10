@@ -36,10 +36,10 @@ win.stim_lambda             = log(2)./win.halflife;
 
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 8;
+win.rep_item                = 6;
 win.exp_trials              = win.ncols*win.ncols*win.rep_item;
 win.test_trials             = 16;
-win.t_perblock              = 16;
+win.t_perblock              = 32;
 if mod(win.exp_trials,win.t_perblock),error('Number of trials per block do not match with total amount of trials'),end
 win.calib_every             = 2; 
 win.nBlocks                 = win.exp_trials/win.t_perblock;
@@ -164,7 +164,7 @@ txt13    = double(['F' 252 'r den n' 228 'chsten Block die H' 228 ...
 txt14    = double(['Das Experiment ist nun beendet. Vielen Dank f' 252 'r die Teilnahme! '  txtdev]);
 
 %these are for debugging
-handstr  = {'Left','Right','','','Left','Right'};
+handstr  = {'Left','Right','','','Left','Right','','','Left','Right','','','Left','Right'};
 crossstr = {'Uncrossed','Crossed'};
         
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -281,7 +281,7 @@ fixIndex            = Screen('MakeTexture', win.hndl, image);               % th
 sn                  = str2num(win.s_n);
 win.vsTrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);
 win.vsTrials(win.test_trials+1:end) = [];
-experimentrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);                                    % (!!TODO: set-up number of trials)
+experimentrials     = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);                                    % (!!TODO: set-up number of trials)
 for e = 1:length(experimentrials)
     win.vsTrials(e+win.test_trials) = experimentrials(e);
 end
@@ -319,7 +319,7 @@ win.result.stim     = zeros(1,nTrials);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 b                   = 0;                                                    % block flag
-for nT = 1%:nTrials                                                          % loop throught the experiment trials
+for nT = 1:nTrials                                                          % loop throught the experiment trials
     
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -346,7 +346,7 @@ for nT = 1%:nTrials                                                          % l
         end      
         b = b+1;
         if nT>win.test_trials
-            win.halflife(b)                = median([ones(1,nT), zeros(1,nTrials-nT)])/1.5;    % half-life set to median of RT/1.5
+            win.halflife(b)                = median(win.result.rT(find([ones(1,nT), zeros(1,nTrials-nT)])))/1.5;    % half-life set to median of RT/1.5
             win.stim_lambda(b)             = log(2)./win.halflife(b); 
         end 
         if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
