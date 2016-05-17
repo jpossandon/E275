@@ -36,7 +36,7 @@ win.stim_lambda             = log(2)./win.halflife;
 
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 6;
+win.rep_item                = 8;
 win.exp_trials              = win.ncols*win.ncols*win.rep_item;
 win.test_trials             = 16;
 win.t_perblock              = 32;
