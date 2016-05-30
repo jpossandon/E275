@@ -11,7 +11,7 @@
 % this is for debugging
 win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
 win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
-% PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
+PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
 
 % Screen parameters
 win.whichScreen             = 0;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
@@ -22,7 +22,7 @@ win.res                     = [1920 1080];                                  %  h
 win.wdth                    = 51;                                           %  51X28.7 cms is teh size of Samsung Syncmaster P2370 in BPN lab EEG rechts
 win.hght                    = 28.7;                                         % 
 win.pixxdeg                 = win.res(1)/(2*180/pi*atan(win.wdth/2/win.Vdst));% 
-win.trial_max_length        = 10;                                           % this is the max length of search,
+win.trial_max_length        = 12;                                           % this is the max length of search,
 win.center_thr              = 3*win.pixxdeg;                                % this is overriden below to set it to the center two columns
 win.targ_thr                = win.pixxdeg;                                  % this is overriden below accoring to the spacing of the targets
 win.tfix_target             = .5;
@@ -33,13 +33,14 @@ win.stim_dur                = .025;                                         % du
 win.stim_min_latency        = .325;                                         % minimum time from trial start (new image appearance) or previous stimulation for a tactile stimulation to occur
 win.halflife                = win.trial_max_length/4;                       % we use an exponential distribution for a flat hazard function. Here the denominator set the duration in which half of the times will occur an stimulation
 win.stim_lambda             = log(2)./win.halflife;                                 
-
+win.rT_ratio                = 2;
 % Blocks and trials
 win.ncols                   = 8;
-win.rep_item                = 8;
-win.exp_trials              = win.ncols*win.ncols*win.rep_item;
+win.nrows                   = 6;
+win.rep_item                = 12;
+win.exp_trials              = win.ncols*win.nrows*win.rep_item;
 win.test_trials             = 16;
-win.t_perblock              = 32;
+win.t_perblock              = 24;
 if mod(win.exp_trials,win.t_perblock),error('Number of trials per block do not match with total amount of trials'),end
 win.calib_every             = 2; 
 win.nBlocks                 = win.exp_trials/win.t_perblock;
@@ -279,9 +280,9 @@ fixIndex            = Screen('MakeTexture', win.hndl, image);               % th
 % Randomization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 sn                  = str2num(win.s_n);
-win.vsTrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);
+win.vsTrials        = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols,win.nrows);
 win.vsTrials(win.test_trials+1:end) = [];
-experimentrials     = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols);                                    % (!!TODO: set-up number of trials)
+experimentrials     = vsCreateTrials(win.trial_max_length,win.rep_item,win.ncols,win.nrows);                                    % (!!TODO: set-up number of trials)
 for e = 1:length(experimentrials)
     win.vsTrials(e+win.test_trials) = experimentrials(e);
 end
@@ -346,7 +347,7 @@ for nT = 1:nTrials                                                          % lo
         end      
         b = b+1;
         if nT>win.test_trials
-            win.halflife(b)                = median(win.result.rT(find([ones(1,nT), zeros(1,nTrials-nT)])))/1.5;    % half-life set to median of RT/1.5
+            win.halflife(b)                = median(win.result.rT(find([ones(1,nT), zeros(1,nTrials-nT)])))/win.rT_ratio;    % half-life set to median of RT/1.5
             win.stim_lambda(b)             = log(2)./win.halflife(b); 
         end 
         if nT>1 %&& ismember(nT, win.t_perblock+win.test_trials+1:win.calib_every*win.t_perblock:nTrials)                              % we calibrate every two small blocks
