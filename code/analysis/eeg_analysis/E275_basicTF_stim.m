@@ -8,7 +8,7 @@
 % TFR
 % sge               = str2num(getenv('SGE_TASK_ID'));
 clear
-for tk = 5; % subject number
+for tk = 6; % subject number
 
     % Analysis parameters
     p.times_tflock              = [1000 1500];
@@ -52,9 +52,14 @@ for tk = 5; % subject number
     load([cfg_eeg.eyeanalysisfolder cfg_eeg.filename 'eye.mat'])                         
 
     [trls.trlLU,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==1'},p.times_tflock);            
-    [trls.trlRU,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==2'},p.times_tflock);            
+    [trls.trlRU,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==2'},p.times_tflock); 
+    if tk<6
     [trls.trlLC,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==3'},p.times_tflock);            
     [trls.trlRC,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==4'},p.times_tflock);            
+    else
+        [trls.trlLC,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==5'},p.times_tflock);            
+    [trls.trlRC,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==6'},p.times_tflock);       
+    end
     [trls.image,events]                = define_event(cfg_eeg,eyedata,'ETtrigger',{'value','==96'},p.times_tflock);  
     
     % Locked to stimulus
@@ -160,14 +165,14 @@ cfgp.fontsize   = 12;
 cfgp.elec       = elec;
 cfgp.interactive    = 'yes';
 % cfgp.trials     =4
-%         cfgp.baseline       = p.bsl;
-%         cfgp.baselinetype   = 'db';
+%          cfgp.baseline       = p.bsl;
+%          cfgp.baselinetype   = 'db';
 % cfgp.ylim           = [0 40];
  cfgp.xlim           = [-.75 1.25];
-%       cfgp.zlim           = [-1 1];
+       cfgp.zlim           = [-4 4];
 %     cfgp.maskparameter = 'mask';
 %       cfgp.maskalpha = .3
-data = GA.IM;
+data = GA.RC;
 
 figure,ft_multiplotTFR(cfgp,data)
 

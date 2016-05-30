@@ -1,4 +1,6 @@
 % analysis of effect of late stimulation in viewing behavior
+% TODO (solved): covariate does not seem to work? Yes it does but it is a calue
+% between 0 and 1
 %%
 clear 
 if ismac
@@ -13,9 +15,9 @@ eyedata.events.angle    = data.angle*pi/180;
 subjects                = unique(eyedata.events.subject);
 
 %%
-subjects = [1:4];
+subjects = [1:6];
 cross               = [0 0 0 1 1 1];  % (no cross-no stim / no cross/left / no cross/right / no cross/both 
-stimside            = [0 1 2 0 3 4];  %    cross-no stim  /  cross/left   /  cross/right   / cross/both)
+% ??stimside            = [0 1 2 0 3 4];  %    cross-no stim  /  cross/left   /  cross/right   / cross/both)
  saclat              = cell(length(subjects),8);
  fixlat              = cell(length(subjects),8);
  fixelap              = cell(length(subjects),8);
@@ -24,7 +26,11 @@ conds               = {'u_no','u_l','u_r','c_no','c_l','c_r'};
 earlylatlimit       = [105 200]; 
 for s = 1:length(subjects)
      display(sprintf('Processing subject %d',subjects(s)))
-    
+    if subjects(s)>5
+        stimside            = [0 1 2 0 5 6]; 
+    else
+       stimside            = [0 1 2 0 3 4]; 
+    end
     subjsample          = struct_select(sample,{'subject'},{['==' num2str(subjects(s))]},2);    % data from the current subject s
     
     indxstim            = find(stim.subject==subjects(s) & stim.trial>10);                      % stimulation for subjects s and after first 10 test trials
@@ -117,9 +123,9 @@ for s = 1:length(subjects)
         end
         % effect coding without comparison to no-stim
         if n<rnval+1
-            if val(n)==1 | val(n)==3
+            if val(n)==1 || val(n)==3 || val(n)==5
                 XY_eff(n,1) = -1;
-            elseif val(n)==2 | val(n)==4
+            elseif val(n)==2 || val(n)==4 || val(n)==6
                 XY_eff(n,1) = 1;
             end
             if crossaux
