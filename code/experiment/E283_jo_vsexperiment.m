@@ -11,7 +11,7 @@
 % this is for debugging
 win.DoDummyMode             = 0;                                            % (1) is for debugging without an eye-tracker, (0) is for running the experiment
 win.stim_test               = 1;                                            % (1) for testing the stimulators (always when doing the experiment), (0) to skip
-PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
+% PsychDebugWindowConfiguration(0,0.7);                                       % this is for debugging with a single screen
 
 % Screen parameters
 win.whichScreen             = 0;                                             % (CHANGE?) here we define the screen to use for the experiment, it depend on which computer we are using and how the screens are conected so it might need to be changed if the experiment starts in the wrong screen
@@ -414,8 +414,8 @@ for nT = 1:nTrials                                                          % lo
     tstart      = GetSecs;                                                  % timer trial start
 %     last_stim   = tstart;                                                   % in this case, this mean image appearace
     Eyelink('WaitForModeReady', 50);
-   
-% 
+%    fname = sprintf('vsStim_Target%02d', win.vsTrials(nT).stimulus.tgtIndx)
+% saveScreenshotAsPNG(win.hndl, fname)
     Eyelink('command', '!*write_ioport 0x378 %d',0);                        % flush the parallel port
 %     Eyelink('WaitForModeReady', 50);
 %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -429,13 +429,14 @@ for nT = 1:nTrials                                                          % lo
     % information to the eye-ttracker about a tactile stimulus occuring
     
 %     rvals     =  win.stim_min_latency + (win.stim_max_latency-win.stim_min_latency).*rand(100,1); % interstimulation intervals defined by an uniform distribution    
-    rvals       = win.stim_min_latency + ...                                % interstimulation intervals defined by an exponential distribution with half-life = 1/lambda
-                (-1./win.stim_lambda(b) .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
-    if rand(1)<win.catchp                                                   % catch trials in which stimulation occurs anywhere
+%     rvals       = win.stim_min_latency + ...                                % interstimulation intervals defined by an exponential distribution with half-life = 1/lambda
+%                 (-1./win.stim_lambda(b) .* log(rand([1 100])));                % rvals = win.stim_min_latency + exprnd(1./win.stim_lambda,1,100);    by pass stat toolbox
+    rvals = .150+rand(1)/10;
+%     if rand(1)<win.catchp                                                   % catch trials in which stimulation occurs anywhere
         catcht = 1;
-    else
-        catcht = 0;
-    end
+%     else
+%         catcht = 0;
+%     end
     stim_idx    = 1;
     % here we check when the subjects find the target and whether we
     % stimulate or not

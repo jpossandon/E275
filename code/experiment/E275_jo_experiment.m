@@ -431,7 +431,7 @@ for nT = 1:nTrials                                                          % lo
         while 1                                                             % images change contingent to the end of a fixation and the horixzontal position, we already did the waiting at the end of previous trial
             [data,type] = get_ETdata;
                 if type ==6 % start fixation
-                     if abs(data.genx(win.el.eye_used+1)-win.res(1)./2)<win.center_thershold
+                     if abs(data.genx(1)-win.res(1)./2)<win.center_thershold
 %                     if abs(data.genx(win.el.eye_used)-win.res(1)./2)<win.center_thershold % (!TODO!) check this
 %                        WaitSecs(.04+randsample(.01:.01:.1,1));              % this is a lag+jitter so the change of the image occurs after saccadic supression betwenn .05 and .150 sec
                         break

@@ -1,7 +1,7 @@
 function E275_generate_eye_data(subjects)
 % generate data experiment touch
 cfg.edfreadpath     = '/home/th/code/edfread/build/linux64/';
-cfg.eyes            = 'monoocular';
+cfg.eyes            = 'monocular';
 for s = subjects
     cfg.filename        = sprintf('s%02d',s);
     cfg.EDFfolder       = sprintf('/home/th/Experiments/E275/data/s%02d/',s);
