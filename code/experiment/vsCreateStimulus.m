@@ -98,8 +98,8 @@ if draw2EL, vsShowStimOnHost(), end % NOTE: May change the Eyelink's mode!
 % disp(vsTrials(1).stimulus.posGrid)
 %
 % for saving example images:
-% fname = sprintf('vsStim_Target%02d', find(vsPosGrid));
-% saveScreenshotAsPNG(win.hndl, fname)
+%  fname = sprintf('vsStim_Target%02d', find(vsPosGrid));
+%  saveScreenshotAsPNG(win.hndl, fname)
 %
 % testGridPositions() % draw all grid positions for inspection
 
