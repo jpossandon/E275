@@ -1,17 +1,16 @@
-function cfg = eeg_etParams_275(varargin)
+function cfg = eeg_etParams_xxx(varargin)
 
 if ~isstruct(varargin{1})
     % default parameter for experiment EEG features
-    cfg.expname                 = 'E275';                         % used for eeg population stats and meta-analysis across experiments, keep the same name for all analysis done with the same experimental data
+    cfg.expname                 = 'Exxx';                         % used for eeg population stats and meta-analysis across experiments, keep the same name for all analysis done with the same experimental data
 
     % paths
-%     cfg.expfolder               = '/Users/jossando/trabajo/E275/';
-    cfg.expfolder               = '/net/store/nbp/projects/EEG/E275/'    
+     cfg.expfolder               = '/Users/jossando/trabajo/E275/';
     cfg.edfreadpath             = '/net/store/users/jossando/edfread/build/linux64/';
    
     % triggers and trial definition
-    cfg.trial_trig_eeg          = {'S  1','S  2','S  3','S  4','S 96'};                          % 'S  1','S  2','S  3', vm task eeg triggers 
-    cfg.trial_trig_et           = {'1','2','3','4','96'};                                % vm task EDF triggers
+    cfg.trial_trig_eeg          = {'S  1','S  2','S  5','S  6','S  9','S 10','S 92','S 96'};                          % 'S  1','S  2','S  3', vm task eeg triggers 
+    cfg.trial_trig_et           = {'1','2','5','6','9','10','92','96'};                                % vm task EDF triggers
     cfg.trial_time              = [0 8000];                                    % experiment trial window
 
     % channel that need to be remove or switch

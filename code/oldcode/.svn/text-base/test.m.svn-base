@@ -1,0 +1,18 @@
+device = '/dev/ttyS0';
+obj = serial(device,'BaudRate', 115200,'Parity','none','StopBits',1,'FlowControl','none');
+fopen(obj);
+ok = js_E174_define_tact_states(obj,40,50)
+
+    
+
+edf_filename    = 'test.edf'
+whichScreen = max(Screen('Screens'));
+[win winRect] = Screen('OpenWindow',whichScreen,0,[0 0 100 100]);       %testwindow
+scr_w = winRect(3);     scr_h = winRect(4);
+setup_eyetracker
+Eyelink('OpenFile', edf_filename );
+	    Eyelink('command', '!*write_ioport 0x378 0x00'); 
+EyelinkDoTrackerSetup(el);
+Eyelink('command', '!*write_ioport 0x378 2')
+Eyelink('command', '!*write_ioport 0x378 0')
+Eyelink('command', '!*write_ioport 0x378 10')

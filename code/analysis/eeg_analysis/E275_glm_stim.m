@@ -1,14 +1,16 @@
 % Time-series analysis locked to tactile stimulation
 %%
 % eeglab
-clear all
+clear
 E275_params                                 % basic experimental parameters               % 
 fmodel                      = 1;            % wich glm model
 E275_models                                 % the models
 
 %%
 % subject configuration and data
-tk = 4
+stimB = [];
+for tk = p.subj
+    tk
 %  for tk = p.subj;
 % tk = str2num(getenv('SGE_TASK_ID'));
     if ismac    
@@ -29,31 +31,46 @@ tk = 4
     load([cfg_eeg.eyeanalysisfolder cfg_eeg.filename 'eye.mat'])            % eyedata               
 
     mkdir([cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/'])
+%     mkdir([cfg_eeg.analysisfolder cfg_eeg.analysisname '/ERP/' cfg_eeg.sujid '/'])
       E275_base_trl_event_def_stim                                        % trial configuration  
 
-         %%
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % GLM ANALYSIS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% p.npermute = 1;
+p.analysis_typ = p.analysis_type{1}; 
+% [modelos_stim]    = regmodelpermutef({cfg_eeg},p.analysis_type{1},{trls.left;trls.right},eval(p.model_cov),p.model_inter,p.bsl,p.rref,p.npermute,'effect',p.mirror);
+[modelos_stim]    = regmodelpermutef({cfg_eeg},[],p);
 
-[modelos_stim]    = regmodelpermutef({cfg_eeg},p.analysis_type{1},{trls.trl_left;trls.trl_right},eval(p.model_cov),p.model_inter,p.bsl,p.rref,p.npermute,'effect');
-str_sav = 'save([cfg_eeg.analysisfolder cfg_eeg.analysisname ''/ERP/ERP_'' cfg_eeg.sujid ''_''  p.analysisname]';
-str_sav = [str_sav ',''modelos_stim'''];
-eval([str_sav ',''p'',''trls'',''cfg_eeg'');'])
-   
+stimB = cat(4,stimB,modelos_stim.B);
+save([cfg_eeg.analysisfolder cfg_eeg.analysisname '/ERP/subjmodels/ERPglm_' cfg_eeg.sujid '_'  p.analysisname],'modelos_stim','p','trls','cfg_eeg');
+
 %%
-% plotting betas each subject  
-% stimlock
-modelplot = modelos_stim;
-for b=1:size(modelplot.B,2)
-    betas.avg       = squeeze(modelplot.B(:,b,:));
-    collim          =[-6*std(betas.avg(:)) 6*std(betas.avg(:))];
-    betas.time      = modelplot.time;
-    betas.dof       = 1;
-    betas.n         = sum(modelplot.n);
-    
-    fh = plot_stat(cfg_eeg,modelplot.TCFEstat(b),betas,[],p.interval,collim,.05,sprintf('Beta:%s',p.coeff{b}),1);
-    saveas(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/' cfg_eeg.sujid '_glm_stimlock_' p.coeff{b} '_' p.analysis_type{1}],'fig')
-    close(fh)
+%     % % plotting betas each subject  
+%     % % stimlock
+%     modelplot = modelos_stim;
+%     for b=1:size(modelplot.B,2)
+%         betas.avg       = squeeze(modelplot.B(:,b,:));
+%         collim          =[-6*std(betas.avg(:)) 6*std(betas.avg(:))];
+%         betas.time      = modelplot.time;
+%         betas.dof       = 1;
+%         betas.n         = sum(modelplot.n);
+% 
+%         fh = plot_stat(cfg_eeg,modelplot.TCFEstat(b),betas,[],p.interval,collim,.05,sprintf('Beta:%s',p.coeff{b}),1);
+%         doimage(fh,[cfg_eeg.analysisfolder cfg_eeg.analysisname '/figures/' cfg_eeg.sujid '/'],'png',[ datestr(now,'ddmmyy') cfg_eeg.sujid '_glm_stimlock_' p.coeff{b} '_' p.analysis_type{1}],1)
+% 
+%     end
 end
+%%
+%2nd level analysis
 
+load(cfg_eeg.chanfile)
+% result = regmodel2ndstat(stimB,modelos_stim.time,elec,1000,'bootet','cluster');
+result = regmodel2ndstat(stimB,modelos_stim.time,elec,1000,'signpermT','cluster');
+save([cfg_eeg.analysisfolder cfg_eeg.analysisname '/ERP/' datestr(now,'ddmmyy') '_ERPglm_' p.analysisname],'result','stimB','p','cfg_eeg');
+
+%%
+load(cfg_eeg.chanfile)
+p.interval = [-.09 .63 .01];
+E275_glm_stim_betaplots
