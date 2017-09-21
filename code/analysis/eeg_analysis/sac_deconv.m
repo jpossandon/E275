@@ -6,20 +6,22 @@ E275_params                                 % basic experimental parameters     
 p.analysisname  = 'deconvTS';
 %%
 % subject configuration and data
-stimB = [];
-ssubj = 1;
-
+ 
+if ismac 
 run('/Users/jossando/trabajo/matlab/unfold/init_unfold.m')        
-
+else
+run('/Users/jpo/trabajo/matlab/unfold/init_unfold.m')   
+end    
 for tk = p.subj
     tk
 %  for tk = p.subj;
 % tk = str2num(getenv('SGE_TASK_ID'));
     if ismac    
-        cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),...
+        cfg_eeg             = eeg_etParams_E0275('sujid',sprintf('s%02d',tk),...
             'expfolder','/Users/jossando/trabajo/E275/'); % this is just to being able to do analysis at work and with my laptop
     else
-        cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk));
+        cfg_eeg             = eeg_etParams_E275('sujid',sprintf('s%02d',tk),...
+            'expfolder','/Users/jpo/trabajo/E275/');
     end
     
     filename                = sprintf('s%02d',tk);
@@ -94,7 +96,7 @@ for tk = p.subj
         end
     end
     
-    %% ploting beta averages
+  % ploting beta averages
      mkdir(fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,model,'figures_subjects',cfg_eeg.sujid))
      
      B = unfold.beta;
@@ -117,7 +119,7 @@ for tk = p.subj
      end
 
       mkdir(fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,model,'glm'))
-      save(fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,model,'glm',cfg_eeg.sujid,model),'unfold')
+      save(fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,model,'glm',[cfg_eeg.sujid,'_',model]),'unfold')
       clear unfold
 end 
 %%
