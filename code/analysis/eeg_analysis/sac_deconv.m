@@ -124,26 +124,30 @@ for tk = p.subj
 end 
 %%
 % %2nd level analysis
+clear
 E275_params                                 % basic experimental parameters               % 
-% p.analysisname  = 'deconvTS';
-cfg_eeg                 = eeg_etParams_E275('clean_name','final',... 
-                                'analysisname','saclock'); 
-p.analysisname  = 'deconv';
+p.analysisname  = 'deconvTS';
+ if ismac    
+        cfg_eeg             = eeg_etParams_E0275('expfolder','/Users/jossando/trabajo/E275/','analysisname', 'deconvTS'); % this is just to being able to do analysis at work and with my laptop
+    else
+        cfg_eeg             = eeg_etParams_E275('expfolder','/Users/jpo/trabajo/E275/','analysisname', 'deconvTS');
+ end
+    
 stimB = [];
-model               = 'Fx_Fy_Sxd_Syd_IM_STs_STc_STsc';
-%    
+model               = 'Fxy_Sxdyd_IM_STsc';
 for tk = p.subj
      cfg_eeg             = eeg_etParams_E275(cfg_eeg,'sujid',sprintf('s%02d',tk));
-    load([cfg_eeg.analysisfolder cfg_eeg.analysisname '/' p.analysisname '/' model '/glm/' cfg_eeg.sujid '_' model],'unfold')
+    load(fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,model,'glm',[cfg_eeg.sujid,'_',model]),'unfold')
     stimB = cat(4,stimB,permute(unfold.beta(:,:,:),[1,3,2]));
 end
 load(cfg_eeg.chanfile)
 result      = regmodel2ndstat(stimB,unfold.times,elec,1000,'signpermT','cluster');
-save([cfg_eeg.analysisfolder cfg_eeg.analysisname filesep p.analysisname filesep model '/glm/glmALL'],'result')
-
+%%
+save(fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,model,'glm','glmALL'),'result')
+%%
 interval = [-.64 .64 .02];
 
-pathfig = fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,p.analysisname,model,'figures',[datestr(now,'ddmmyy') 'tcfe']);
+pathfig = fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,model,'figures',[datestr(now,'ddmmyy')]);
 coeffs  = strrep({unfold.epoch.name},':','XX');
 coeffs  = strrep(coeffs,'(','');
 coeffs  = strrep(coeffs,')','');
