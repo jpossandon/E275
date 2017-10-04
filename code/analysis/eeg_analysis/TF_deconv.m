@@ -131,29 +131,43 @@ for tk = p.subj
 end 
 %%
 % %2nd level analysis
-E275_params                                 % basic experimental parameters               % 
-% p.analysisname  = 'deconvTS';
+clear
+E275_params                                 % basic experimental parameters  
+p.analysisname  = 'deconvTFmirr';% 
 cfg_eeg                 = eeg_etParams_E275('clean_name','final',... 
-                                'analysisname','saclock'); 
-p.analysisname  = 'deconv';
-stimB = [];
-model               = 'Fx_Fy_Sxd_Syd_IM_STs_STc_STsc';
-%    
-for tk = p.subj
-     cfg_eeg             = eeg_etParams_E275(cfg_eeg,'sujid',sprintf('s%02d',tk));
-    load([cfg_eeg.analysisfolder cfg_eeg.analysisname '/' p.analysisname '/' model '/glm/' cfg_eeg.sujid '_' model],'unfold')
-    stimB = cat(4,stimB,permute(unfold.beta(:,:,:),[1,3,2]));
+                                'analysisname','deconvTF'); 
+
+ model               = 'Fxy_Sxdyd_IM_STsc';
+% p.subj              = [1,2,4,5,6,7,9,12,13,14,15,16,17,19,20,22,24,25,27,28,29,30,32,34,35];
+freqbands       = {'alfa','albe','beta'};
+for fb = 2:length(freqbands)
+    stimB = [];
+    for tk = p.subj
+         cfg_eeg             = eeg_etParams_E275(cfg_eeg,'sujid',sprintf('s%02d',tk));
+        load([cfg_eeg.analysisfolder cfg_eeg.analysisname '/' model '/glm/' cfg_eeg.sujid '_' model],'unfold')
+        auxdata = permute(unfold.(freqbands{fb}).beta(:,:,:),[1,3,2]);
+%         auxdata = auxdata-repmat(mean(auxdata(:,:,1:20),3),[1,1,length(unfold.(freqbands{fb}).times)]);
+ if any(strfind(p.analysisname,'mirr'))
+        mirindx         = mirrindex({unfold.(freqbands{fb}).chanlocs.labels},[cfg_eeg.expfolder '/channels/mirror_chans']); 
+           stimB = cat(4,stimB,auxdata-auxdata(mirindx,:,:));
+ else
+        stimB = cat(4,stimB,auxdata);
+ end
+    end
+    load(cfg_eeg.chanfile)
+    result.(freqbands{fb}) = regmodel2ndstat(stimB,unfold.(freqbands{fb}).times,elec,1000,'signpermT','cluster');
+    interval = [-.64 .64 .02];
+
+    pathfig = fullfile(cfg_eeg.analysisfolder,p.analysisname,model,'figures',[datestr(now,'ddmmyy')]);
+    coeffs  = strrep({unfold.(freqbands{fb}).epoch.name},':','XX');
+    coeffs  = strrep(coeffs,'(','');
+    coeffs  = strrep(coeffs,')','');
+    coeffs = strcat({unfold(1).(freqbands{fb}).epoch.event}','_',coeffs','_',freqbands{fb});
+
+    glm_betaplots(cfg_eeg,stimB,result.(freqbands{fb}),interval,pathfig,coeffs)
+
 end
-load(cfg_eeg.chanfile)
-result      = regmodel2ndstat(stimB,unfold.times,elec,1000,'signpermT','cluster');
-save([cfg_eeg.analysisfolder cfg_eeg.analysisname filesep p.analysisname filesep model '/glm/glmALL'],'result')
+mkdir(fullfile(cfg_eeg.analysisfolder,p.analysisname ,model,'glm'))
 
-interval = [-.64 .64 .02];
+save([cfg_eeg.analysisfolder p.analysisname filesep model '/glm/glmALL'],'result')
 
-pathfig = fullfile(cfg_eeg.analysisfolder,cfg_eeg.analysisname,p.analysisname,model,'figures',[datestr(now,'ddmmyy') 'tcfe']);
-coeffs  = strrep({unfold.epoch.name},':','XX');
-coeffs  = strrep(coeffs,'(','');
-coeffs  = strrep(coeffs,')','');
-coeffs = strcat({unfold(1).epoch.event}','_',coeffs');
-
-glm_betaplots(cfg_eeg,stimB,result,interval,pathfig,coeffs)
