@@ -159,8 +159,8 @@ cfg_eeg                 = eeg_etParams_E275('clean_name','final',...
 
  model               = 'Fxy_Sxdyd_IM_STsc';
 % p.subj              = [1,2,4,5,6,7,9,12,13,14,15,16,17,19,20,22,24,25,27,28,29,30,32,34,35];
-freqbands       = {'alfa','albe','beta'};
-for fb = 2:length(freqbands)
+freqbands       = {'alfaSS' 'alphaV'};
+for fb = 1:length(freqbands)
     stimB = [];
     for tk = p.subj
          cfg_eeg             = eeg_etParams_E275(cfg_eeg,'sujid',sprintf('s%02d',tk));
