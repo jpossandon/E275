@@ -82,11 +82,31 @@ for tk = p.subj
     cfgDesign.formula   = {'y ~pxini*pyini','y~pxdiff*pydiff','y~1','y~ side*cross'};
     model               = 'Fxy_Sxdyd_IM_STsc';
  
-    freqbands       = {'alfa','albe','beta'};
-    bplim           = [9.5 12.5;13 19;20 24];
-    filtPnts        = [368,254,166]; % check this
+    % this get each subject respective peak for somatosensory and visual,
+    % and calculates a fractional bandwith of .4
+    % If there is no peak it takes the group average
+    load(fullfile(cfg_eeg.analysisfolder,'spectra','allspectra'),'spectra')
+    sptk            = find([spectra.seg.id],tk);
+    freqbands       = {'alfaSS' 'alphaV'};
+    if ~isempty(spectra.seg(sptk).fpstr.alpha)
+        pkSS        = spectra.seg(sptk).fpstr.alpha;
+    else
+        auxspct     = [spectra.seg.fpstr];
+        pkSS        = mean([auxspct.alpha]);
+    end
+    if ~isempty(spectra.bst(sptk).fpstr.alpha)
+        pkV         = spectra.bst(sptk).fpstr.alpha;
+    else
+        auxspct     = [spectra.bst.fpstr];
+        pkV         = mean([auxspct.alpha]);
+    end
+    fracBWSS        = pkSS*.25/2;
+    fracBWV         = pkV*.25/2;
+    bplim           = [pkSS-fracBWSS pkSS+fracBWSS;...
+                       pkV-fracBWV pkV+fracBWV];
+    filtPnts        = [500 500]; % check this
     for fb = 1:length(freqbands)
-        EEGaux              = pop_eegfiltnew(EEG, bplim(fb,1), bplim(fb,2), filtPnts(fb), 0, [], 0);
+        [EEGaux,com]              = pop_eegfiltnew(EEG, bplim(fb,1), bplim(fb,2), filtPnts(fb), 0, [], 0);
         EEGaux.data         = abs(hilbert(EEGaux.data')');
         EEGaux              = dc_designmat(EEGaux,cfgDesign);
         cfgTexp             = [];
