@@ -86,7 +86,7 @@ for tk = p.subj
     % and calculates a fractional bandwith of .4
     % If there is no peak it takes the group average
     load(fullfile(cfg_eeg.analysisfolder,'spectra','allspectra'),'spectra')
-    sptk            = find([spectra.seg.id],tk);
+    sptk            = find([spectra.seg.id]==tk);
     freqbands       = {'alfaSS' 'alphaV'};
     if ~isempty(spectra.seg(sptk).fpstr.alpha)
         pkSS        = spectra.seg(sptk).fpstr.alpha;
@@ -153,10 +153,13 @@ end
 % %2nd level analysis
 clear
 E275_params                                 % basic experimental parameters  
-p.analysisname  = 'deconvTFmirr';% 
-cfg_eeg                 = eeg_etParams_E275('clean_name','final',... 
-                                'analysisname','deconvTF'); 
-
+p.analysisname  = 'deconvTF';% 
+ if ismac    
+        cfg_eeg             = eeg_etParams_E275('expfolder','/Users/jossando/trabajo/E275/','analysisname', 'deconvTF'); % this is just to being able to do analysis at work and with my laptop
+    else
+        cfg_eeg             = eeg_etParams_E275('expfolder','/Users/jpo/trabajo/E275/','analysisname', 'deconvTF');
+ end
+ 
  model               = 'Fxy_Sxdyd_IM_STsc';
 % p.subj              = [1,2,4,5,6,7,9,12,13,14,15,16,17,19,20,22,24,25,27,28,29,30,32,34,35];
 freqbands       = {'alfaSS' 'alphaV'};
@@ -184,6 +187,7 @@ for fb = 1:length(freqbands)
     coeffs  = strrep(coeffs,')','');
     coeffs = strcat({unfold(1).(freqbands{fb}).epoch.event}','_',coeffs','_',freqbands{fb});
 
+    
     glm_betaplots(cfg_eeg,stimB,result.(freqbands{fb}),interval,pathfig,coeffs)
 
 end
