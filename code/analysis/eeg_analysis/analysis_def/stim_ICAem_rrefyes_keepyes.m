@@ -1,8 +1,8 @@
 p.subj                  = p.subj;
-p.times_imlock          = [500 600];
+p.times                 = [200 800];
 % p.minamp              = 0;
 % p.prev                = {-1,1,'origstart','>0'};
-p.npermute              = 250;
+p.npermute              = 1;
 p.data                  = 'stim';
 p.rref                  = 'yes';
 p.keep                  = 'no';
@@ -19,9 +19,9 @@ p.cov                   = '';
 p.model_cov             = '[]';
 p.cov                   = 'cross';   
 p.model_cov             = 'cat(2,covs.covariate_cross)'; 
-p.model_inter           = [1 2];
-p.coeff                 = {'const','LR','Cross','LPxCross'};
-
+p.interact              = [1 2];
+p.coeff                 = {'const','LR','Cross','LRxCross'};
+p.mirror                = [];
 % p.fix_model_cov       = 'cat(2,covs.covariate_modinc,covs.covariate_moddec,covs.covariate_amp)';%'cat(2,covs.covariate_emp,covs.covariate_amp)';
 % p.fix_model_inter     = [];
 % p.coeff_fix           = {'const','LR','modinc','moddec','amp'};

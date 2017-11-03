@@ -3,8 +3,8 @@
 %%
 % Read the eyetracker file
 % b
-oldsubjects             = [1:6];
-addsubjects             = 7;
+oldsubjects             = [1:17,19,20,22:25,27:32,34:37,38];
+addsubjects             = [39:40];
     
 for s=addsubjects
     eegfilename     = sprintf('s%02d',s);

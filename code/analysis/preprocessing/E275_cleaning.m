@@ -1,7 +1,7 @@
 %clean_path
 %%
 %suj = str2num(getenv('SGE_TASK_ID'));
-suj             = 6;
+for suj             = [39,40]
 eegfilename     = sprintf('s%02d',suj);
 suj             = sprintf('s%02d',suj);
 
@@ -143,10 +143,10 @@ load([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename 'pre'],
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','-append') % TODO: info about the cleaning parameters
 
 %%
-%  cfgvis             = eeg_etParams_E275(cfg,...
-%                                        'remove_eye',1,...
-%                                        'remove_m',1,'raw',1); 
-%  visual_clean(cfgvis)
+%    cfgvis             = eeg_etParams_E275(cfg,...
+%                                          'remove_eye',1,...
+%                                          'remove_m',1,'raw',1); 
+%    visual_clean(cfgvis)
 %% 
 % run second definitive ICA
  expica(cfg)
@@ -190,14 +190,14 @@ cfg             = eeg_etParams_E275(cfg,...
 [value,tot_sample]                  = trend_artifact(cfg);
 [bad_t,badchans_t,channelbad_t]     = badsegments(cfg,value,tot_sample,cfg.clean_trend_threshold); %TODO: borders need to be readjusted to hthe length of gthe moving window
 %                    
-% % combine info and save,[channelbad_a;channelbad_g;channelbad_t]
+    % % combine info and save,[channelbad_a;channelbad_g;channelbad_t]
 [bad,badchans]                      = combine_bad({bad_a;bad_g;bad_t},{badchans_a,badchans_g,badchans_t},cfg.clean_minclean_interval);
 channelbad                          = combine_bad([channelbad_a;channelbad_g;channelbad_t],[],cfg.clean_minclean_interval);
 
 cfg_clean                           = cfg;
 save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','channelbad','cfg_clean')  % TODO: info about the cleaning parameters
 % save([cfg.analysisfolder cfg.analysisname '/' cfg.sujid '/' cfg.filename cfg.clean_name],'bad','badchans','channelbad','cfg_clean','value_g','tot_sample_g','value_a','tot_sample_a','value','tot_sample')  % TODO: info about the cleaning parameters
-
+end
 % 
 
 % so there is the problem of very bad periods during eye-movement 
