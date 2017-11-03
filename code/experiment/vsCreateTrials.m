@@ -58,7 +58,7 @@ numbercell = num2cell(int16(1:N.trls));
 % set REPETITIONS for all trials: 0=1st presentation; 1=1st repetition
 stimuli = [vsTrials.stimulus];
 tgtInds = [stimuli.tgtIndx];
-[~,idx] = sort(tgtInds); % index aligning same target indices
+[bla,idx] = sort(tgtInds); % index aligning same target indices
 tgtreps = num2cell(repmat(0:N.reps-1, 1, N.grdX*N.grdY));
 [vsTrials(idx).repttion] = deal(tgtreps{:});
 

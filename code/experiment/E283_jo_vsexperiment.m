@@ -59,7 +59,7 @@ display(sprintf('\n\n\n\n\n\nPlease check that the display screen resolution is 
 if ismac                                                                    % this bit is just so I can run the experiment in my mac without a problem
     exp_path                = '/Users/jossando/trabajo/E275/';              % path in my mac
 else
-    exp_path                = '/home/th/Experiments/E275/';
+    exp_path                = 'C:\Users\bpn\Documents\jpossandon\E275\';
 end
 
 win.s_n                     = input('Subject number: ','s');                % subject id number, this number is used to open the randomization file
@@ -119,7 +119,7 @@ nrchannels                  = 2;                                            % di
  InitializePsychSound;                                                       % Perform basic initialization of the sound driver:
 % 
  try                                                                         % Try with the 'freq'uency we wanted:
-     pahandle = PsychPortAudio('Open', [], [], 0, freq, nrchannels);
+     pahandle = PsychPortAudio('Open', 9, [], 0, freq, nrchannels);
  catch                                                                       % Failed. Retry with default frequency as suggested by device:
      fprintf('\nCould not open device at wanted playback frequency of %i Hz. Will retry with device default frequency.\n', freq);
      fprintf('Sound may sound a bit out of tune, ...\n\n');
