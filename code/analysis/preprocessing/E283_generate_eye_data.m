@@ -4,8 +4,9 @@ cfg.edfreadpath     = '/home/th/code/edfread/build/linux64/';
 cfg.eyes            = 'monoocular';
 for s = subjects
     cfg.filename        = sprintf('s%02dvs',s);
-    cfg.EDFfolder       = sprintf('/home/th/Experiments/E275/data/s%02dvs/',s);
-    eyedata             = eyeread(cfg); 
+%     cfg.EDFfolder       = sprintf('/home/th/Experiments/E275/data/s%02dvs/',s);
+    cfg.EDFfolder       = sprintf('C:\\Users\\jpo\\trabajo\\E283\\data\\s%02dvs\\',s);
+    eyedata             = eyeread2(cfg); 
     auxdata             = eyedata.events;
     
     auxdata.block       = zeros(1,length(auxdata.start));

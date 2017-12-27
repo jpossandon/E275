@@ -80,11 +80,11 @@ for tk = p.subj
     % deconvolution design
     cfgDesign           = [];
     cfgDesign.eventtype = {'fix','sac','image','stim'};
-    cfgDesign.formula   = {'y ~pxini*pyini','y~pxdiff*pydiff','y~1','y~ side*cross'};
+    cfgDesign.formula   = {'y ~pxini+pyini','y~pxdiff+pydiff','y~1','y~side*cross'};
     model               = 'Fxy_Sxdyd_IM_STsc';
     EEG                 = dc_designmat(EEG,cfgDesign);
     cfgTexp             = [];
-    cfgTexp.timelimits  = [-1,1];tic
+    cfgTexp.timelimits  = [-.75,.75];tic
     EEG                 = dc_timeexpandDesignmat(EEG,cfgTexp);toc
     EEG                 = dc_continuousArtifactExclude(EEG,struct('winrej',winrej,'zerodata',0));
     EEG                 = dc_glmfit(EEG);
